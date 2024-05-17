@@ -2,7 +2,7 @@
   "name": "@clarion-app/wizlight-frontend",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc"
@@ -16,5 +16,13 @@
   },
   "devDependencies": {
     "@types/react": "^18.3.2"
+  },
+  "customFields": {
+    "routes": [
+      { 
+        "path": "/bulbs",
+        "element": "<Bulbs />"
+      }
+    ]
   }
 }
