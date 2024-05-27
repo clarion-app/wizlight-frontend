@@ -1,7 +1,8 @@
 .light-bulb {
-  position: relative;
   width: 100px;
   height: 150px;
+  border: thin solid black;
+  margin: 15px;
 }
 
 .bulb {

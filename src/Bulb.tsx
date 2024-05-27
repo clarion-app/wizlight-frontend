@@ -1,22 +1,20 @@
-import { useState } from 'react';
 import './LightBulb.css';
+import { BulbStateType } from './types';
 
-interface BulbPropsType {
-    color: string;
-    brightness: number; // from 0 to 100
+interface BulbPropsType extends BulbStateType {
 }
 
 const Bulb = (props: BulbPropsType) => {
-    const [isOn, setIsOn] = useState(false);
-    const { color, brightness } = props;
+    const { red, green, blue, dimming } = props;
+
+    const color = `rgba(${red}, ${green}, ${blue}, ${(dimming / 50).toFixed(2)})`;
 
     const bulbStyle = {
-      backgroundColor: isOn ? color : 'gray',
-      opacity: brightness / 100,
+      backgroundColor: color,
     };
   
     return (
-      <div className="light-bulb" onClick={() => setIsOn(!isOn)}>
+      <div className="light-bulb">
         <div className="bulb" style={bulbStyle}></div>
         <div className="base"></div>
       </div>
