@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc"
+    "build": "tsc; cp ./src/*.css ./dist"
   },
   "author": "Tim Schwartz <tim@metaverse.systems>",
   "license": "MIT",
