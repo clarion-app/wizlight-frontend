@@ -2,11 +2,10 @@
   width: 100px;
   height: 150px;
   border: thin solid black;
-  margin: 15px;
+  margin: 35px;
 }
 
 .bulb {
-  position: absolute;
   top: 0;
   left: 50%;
   transform: translateX(-50%);
@@ -17,7 +16,6 @@
 }
 
 .base {
-  position: absolute;
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);

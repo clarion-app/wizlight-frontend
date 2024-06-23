@@ -7,11 +7,16 @@ import { BulbStateType } from "./types";
 const Bulbs = () => {
   const [bulbs, setBulbs] = useState<BulbStateType[]>([]);
 
+  const updateState = () => {
+    getState(null).then((results) => {
+      setBulbs(results);
+    });
+  };
+
   useEffect(() => {
+    updateState();
     const interval = setInterval(() => {
-      getState(null).then((results) => {
-        setBulbs(results);
-      });
+      updateState();
     }, 10000);
     return () => clearInterval(interval);
   }, [setBulbs]);
@@ -31,9 +36,9 @@ const Bulbs = () => {
     setBulbs(newBulbs);
   }
 
-  return <div style={{backgroundColor: 'grey'}}>
+  return <div>
     {bulbs.map((bulb) => (
-      <div key={bulb.id} onClick={() => toggleBulb(bulb.id)}>
+      <div key={bulb.id}>
         <Bulb {...bulb} />
       </div>
     ))}

@@ -14,7 +14,7 @@ export interface BulbStateType extends LaravelModelType {
     group: string;
     dimming: number;
     state: number;
-    temperature: number;
+    temperature?: number;
     red: number;
     green: number;
     blue: number;
