@@ -37,6 +37,7 @@ const Bulbs = () => {
   }
 
   return <div>
+    <h2>List of bulbs</h2>
     {bulbs.map((bulb) => (
       <div key={bulb.id}>
         <Bulb {...bulb} />
