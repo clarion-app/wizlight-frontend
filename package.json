@@ -7,6 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc; cp ./src/*.css ./dist/"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/clarion-app/wizlight-frontend.git"
+  },
   "author": "Tim Schwartz <tim@metaverse.systems>",
   "license": "MIT",
   "dependencies": {
