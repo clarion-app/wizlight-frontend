@@ -2,13 +2,14 @@ import { useState } from 'react';
 import './LightBulb.css';
 import { BulbStateType } from './types';
 import ColorWheel from './ColorWheel';
-import getState from "./getState";
-import setState from "./setState";
+import { useSetBulbMutation } from './bulbApi';
 
 interface BulbPropsType extends BulbStateType {
 }
 
 const Bulb = (props: BulbPropsType) => {
+    const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
+
     const { id, red, green, blue, dimming, temperature } = props;
     const [name, setName] = useState<string>(props.name || '');
 
@@ -90,8 +91,7 @@ const Bulb = (props: BulbPropsType) => {
       };
       delete newColor.temperature;
 
-      console.log('newColor', newColor);
-      setState(id, newColor);
+      setBulb({ id: id, state: newColor });
     };
 
     return (

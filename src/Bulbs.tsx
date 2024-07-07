@@ -1,31 +1,21 @@
-import { useEffect, useState } from "react";
 import Bulb from "./Bulb";
-import getState from "./getState";
-import setState from "./setState";
 import { BulbStateType } from "./types";
+import { backend } from ".";
+import { useGetBulbsQuery, useSetBulbMutation } from "./bulbApi";
 
 const Bulbs = () => {
-  const [bulbs, setBulbs] = useState<BulbStateType[]>([]);
+  const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
+  const bulbsQuery = useGetBulbsQuery(null);
+  const bulbs = bulbsQuery.data ?? [];
 
-  const updateState = () => {
-    getState(null).then((results) => {
-      setBulbs(results);
-    });
-  };
-
-  useEffect(() => {
-    updateState();
-    const interval = setInterval(() => {
-      updateState();
-    }, 10000);
-    return () => clearInterval(interval);
-  }, [setBulbs]);
-  
   const toggleBulb = (id: string) => {
-    const newBulbs = bulbs.map((bulb) => {
+    const newBulbs = bulbs.map((bulb: BulbStateType) => {
       if (bulb.id === id) {
         const newState = bulb.state ? 0 : 1;
-        setState(id, { ...bulb, state: newState });
+        setBulb({ id, state: { ...bulb, state: newState }}).then(() => {
+          //refresh the bulbs
+          bulbsQuery.refetch();
+        });
         return {
           ...bulb,
           state: newState,
@@ -33,14 +23,15 @@ const Bulbs = () => {
       }
       return bulb;
     });
-    setBulbs(newBulbs);
   }
 
   return <div>
     <h2>List of bulbs</h2>
-    {bulbs.map((bulb) => (
+    <h3>Backend URL: {backend.url}</h3>
+    {bulbs.map((bulb: BulbStateType) => (
       <div key={bulb.id}>
         <Bulb {...bulb} />
+        <button onClick={() => toggleBulb(bulb.id)}>Turn {bulb.state ? "off" : "on"}</button>
       </div>
     ))}
   </div>;

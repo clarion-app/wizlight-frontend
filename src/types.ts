@@ -1,9 +1,4 @@
-export interface LaravelModelType {
-    id: string;
-    created_at: string;
-    updated_at: string;
-    deleted_at: string;
-}
+import { LaravelModelType } from "@clarion-app/types";
 
 export interface BulbStateType extends LaravelModelType {
     local_node_id: string;
