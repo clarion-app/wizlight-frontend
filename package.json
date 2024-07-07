@@ -1,11 +1,11 @@
 {
   "name": "@clarion-app/wizlight-frontend",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc; cp ./src/*.css ./dist/"
+    "build": "rm -rf dist; tsc; cp ./src/*.css ./dist/"
   },
   "repository": {
     "type": "git",
