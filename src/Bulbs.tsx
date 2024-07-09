@@ -1,7 +1,7 @@
 import Bulb from "./Bulb";
 import { BulbStateType } from "./types";
 import { backend } from ".";
-import { useGetBulbsQuery, useSetBulbMutation } from "./bulbApi";
+import { useGetBulbsQuery, useSetBulbMutation } from "./wizlightApi";
 
 const Bulbs = () => {
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();

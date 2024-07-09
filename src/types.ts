@@ -15,3 +15,7 @@ export interface BulbStateType extends LaravelModelType {
     blue: number;
     signal: string;
 }
+
+export interface RoomType extends LaravelModelType {
+    name: string;
+}

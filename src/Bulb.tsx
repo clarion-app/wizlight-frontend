@@ -2,7 +2,7 @@ import { useState } from 'react';
 import './LightBulb.css';
 import { BulbStateType } from './types';
 import ColorWheel from './ColorWheel';
-import { useSetBulbMutation } from './bulbApi';
+import { useSetBulbMutation } from './wizlightApi';
 
 interface BulbPropsType extends BulbStateType {
 }
@@ -12,6 +12,7 @@ const Bulb = (props: BulbPropsType) => {
 
     const { id, red, green, blue, dimming, temperature } = props;
     const [name, setName] = useState<string>(props.name || '');
+    const [editName, setEditName] = useState<boolean>(false);
 
     let bright = 1.00;
     if (dimming < 100) {
@@ -94,12 +95,33 @@ const Bulb = (props: BulbPropsType) => {
       setBulb({ id: id, state: newColor });
     };
 
+    const changeName = () => {
+      setBulb({ id: id, state: { ...props, name: name } });
+      setEditName(false);
+    }
+
     return (
       <div style={{ margin: '20px', backgroundColor: 'beige' }}>
         <div style={bulbStyle}>
           <ColorWheel changeColor={changeColor} />
         </div>
-        <h2>{name}</h2>
+        {editName ? (
+          <div>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+          />
+          <button onClick={() => changeName()}>Save</button>
+          </div>
+        ) : (
+          <div>
+            <h2>{name}</h2>
+            <button onClick={() => setEditName(true)}>Edit</button>
+          </div>
+        )}
+        
       </div>
     );
   };
