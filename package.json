@@ -1,6 +1,6 @@
 {
   "name": "@clarion-app/wizlight-frontend",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -30,15 +30,30 @@
     "api": "wizlightFrontendApi",
     "routes": [
       {
-        "name": "Bulbs",
         "path": "/clarion-app/wizlight/bulbs",
         "element": "<Bulbs />"
       },
       {
-        "name": "Rooms",
         "path": "/clarion-app/wizlight/rooms",
         "element": "<Rooms />"
+      },
+      {
+        "path": "/clarion-app/wizlight/rooms/:name",
+        "element": "<Room />"
       }
-    ]
+    ],
+    "menu": {
+      "name": "Wizlight",
+      "entries": [
+        {
+          "name": "Bulbs",
+          "path": "/clarion-app/wizlight/bulbs"
+        },
+        {
+          "name": "Rooms",
+          "path": "/clarion-app/wizlight/rooms"
+        }
+      ]
+    }
   }
 }
