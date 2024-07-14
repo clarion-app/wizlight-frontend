@@ -75,6 +75,7 @@ export const wizlightApi = (() => {
 })();
 
 export const invalidateTag = () => {
+    console.log('invalidateTag');
     wizlightApi.util.invalidateTags(['WizlightBulb', 'WizlightRoom']);
 };
 

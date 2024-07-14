@@ -1,7 +1,6 @@
 import Bulb from "./Bulb";
 import { BulbStateType } from "./types";
 import { useGetBulbsQuery, useSetBulbMutation } from "./wizlightApi";
-import { WindowWS } from "@clarion-app/types";
 
 const Bulbs = () => {
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
