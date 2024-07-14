@@ -1,7 +1,8 @@
 import Bulb from "./Bulb";
 import { BulbStateType } from "./types";
-import { backend } from ".";
+import { useEffect } from "react";
 import { useGetBulbsQuery, useSetBulbMutation } from "./wizlightApi";
+import { WindowWS } from "@clarion-app/types";
 
 const Bulbs = () => {
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
@@ -24,6 +25,16 @@ const Bulbs = () => {
       return bulb;
     });
   };
+
+  useEffect(() => {
+    const win = window as unknown as WindowWS;
+    if(win.Echo) {
+      win.Echo.channel('clarion-apps-wizlight').listen('.ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent', (event: any) => {
+        console.log('bulb status event', event);
+        bulbsQuery.refetch();
+    });
+    }
+  }, []);
 
   return (
     <section className="section fixed-grid has-1-cols">

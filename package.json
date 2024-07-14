@@ -1,6 +1,6 @@
 {
   "name": "@clarion-app/wizlight-frontend",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -14,7 +14,7 @@
   "author": "Tim Schwartz <tim@metaverse.systems>",
   "license": "MIT",
   "dependencies": {
-    "@clarion-app/types": "^1.0.3",
+    "@clarion-app/types": "^1.0.4",
     "@reduxjs/toolkit": "^2.2.6",
     "@uiw/react-color-wheel": "^2.3.0",
     "react": "^18.3.1",
