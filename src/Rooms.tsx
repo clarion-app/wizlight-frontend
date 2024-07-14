@@ -18,8 +18,8 @@ const Rooms = () => {
 
     if (isSuccess) {
         return (
-            <div>
-                <h2>Rooms</h2>
+            <section className="section fixed-grid has-1-cols">
+              <h1 className="title">Wizlight - Rooms</h1>
                 <ul>
                     {data.map((room: RoomType) => (
                         <a href={"/clarion-app/wizlight/rooms/" + room.name} key={room.id}>
@@ -31,9 +31,10 @@ const Rooms = () => {
                 <button onClick={() => {
                     console.log('newRoomName', newRoomName);
                     createRoom({ name: newRoomName });
+                    setNewRoomName("");
                   }
                 }>Add room</button>
-            </div>
+            </section>
         );
     }
 

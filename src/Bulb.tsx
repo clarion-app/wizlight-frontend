@@ -101,8 +101,8 @@ const Bulb = (props: BulbPropsType) => {
     }
 
     return (
-      <div style={{ margin: '20px', backgroundColor: 'beige' }}>
-        <div style={bulbStyle}>
+      <div>
+        <div>
           <ColorWheel changeColor={changeColor} />
         </div>
         {editName ? (
@@ -113,12 +113,12 @@ const Bulb = (props: BulbPropsType) => {
             onChange={(e) => setName(e.target.value)}
             autoFocus
           />
-          <button onClick={() => changeName()}>Save</button>
+          <button onClick={() => changeName()} className="button">Save</button>
           </div>
         ) : (
           <div>
             <h2>{name}</h2>
-            <button onClick={() => setEditName(true)}>Edit</button>
+            <button onClick={() => setEditName(true)} className="button">Edit</button>
           </div>
         )}
         
