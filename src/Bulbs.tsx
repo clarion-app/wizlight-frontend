@@ -29,12 +29,10 @@ const Bulbs = () => {
     <section className="section fixed-grid has-1-cols">
       <h1 className="title">Wizlight - Bulbs</h1>
       {bulbs.map((bulb: BulbStateType) => (
-        <div className="grid">
-          <div key={bulb.id} className="cell">
+        <div key={bulb.id} className="grid">
+          <div className="cell">
             <Bulb {...bulb} />
-            <button onClick={() => toggleBulb(bulb.id)} className="button">
-              Turn {bulb.state ? "off" : "on"}
-            </button>
+            
           </div>
         </div>
       ))}
