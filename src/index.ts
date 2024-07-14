@@ -12,7 +12,7 @@ const initializeWizlightFrontend = (setBackendUrl: string) => {
 
 export const handleWebsocketEvent = (event: any) => {
   console.log("bulb status event", event);
-  invalidateTag("WizlightBulb");
+  invalidateTag();
 };
 
 export { Bulbs, Room, Rooms, initializeWizlightFrontend, wizlightFrontendApi };
