@@ -1,4 +1,4 @@
-import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolkit/query/react';
+import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError, TagDescription } from '@reduxjs/toolkit/query/react';
 import { backend } from '.';
 
 const rawBaseQuery = (baseUrl: string) => fetchBaseQuery({ baseUrl: baseUrl });
@@ -73,6 +73,10 @@ export const wizlightApi = (() => {
  });
  return api;
 })();
+
+export const invalidateTag = (tag: TagDescription<'WizlightBulb' | 'WizlightRoom'>) => {
+    wizlightApi.util.invalidateTags([tag]);
+};
 
 export const {
     useGetBulbsQuery, 

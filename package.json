@@ -55,6 +55,9 @@
           "path": "/clarion-app/wizlight/rooms"
         }
       ]
+    },
+    "eventChannels": {
+      "clarion-app-wizlights": "handleWebsocketEvent"
     }
   }
 }
