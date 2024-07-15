@@ -19,8 +19,6 @@ const Bulb = (props: BulbPropsType) => {
 
   const [hexColor, setHexColor] = useState<string>(hexValue);
 
-  console.log(props);
-
   let bright = 1.0;
   if (dimming < 100) {
     bright = dimming / 100;

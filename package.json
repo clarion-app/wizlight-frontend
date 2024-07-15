@@ -1,6 +1,6 @@
 {
   "name": "@clarion-app/wizlight-frontend",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -31,15 +31,15 @@
     "api": "wizlightFrontendApi",
     "routes": [
       {
-        "path": "/clarion-app/wizlight/bulbs",
+        "path": "/clarion-app/wizlights/bulbs",
         "element": "<Bulbs />"
       },
       {
-        "path": "/clarion-app/wizlight/rooms",
+        "path": "/clarion-app/wizlights/rooms",
         "element": "<Rooms />"
       },
       {
-        "path": "/clarion-app/wizlight/rooms/:name",
+        "path": "/clarion-app/wizlights/rooms/:name",
         "element": "<Room />"
       }
     ],
@@ -48,16 +48,16 @@
       "entries": [
         {
           "name": "Bulbs",
-          "path": "/clarion-app/wizlight/bulbs"
+          "path": "/clarion-app/wizlights/bulbs"
         },
         {
           "name": "Rooms",
-          "path": "/clarion-app/wizlight/rooms"
+          "path": "/clarion-app/wizlights/rooms"
         }
       ]
     },
-    "eventChannels": {
-      "clarion-app-wizlights": "handleWebsocketEvent"
-    }
+    "eventChannels": [
+      "clarion-app-wizlights"
+    ]
   }
 }
