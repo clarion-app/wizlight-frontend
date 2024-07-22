@@ -18,7 +18,7 @@ const Rooms = () => {
 
     if (isSuccess) {
         return (
-            <section className="section fixed-grid has-1-cols">
+            <div className="fixed-grid has-1-cols">
               <h1 className="title">Wizlight - Rooms</h1>
                 <ul>
                     {data.map((room: RoomType) => (
@@ -34,7 +34,7 @@ const Rooms = () => {
                     setNewRoomName("");
                   }
                 }>Add room</button>
-            </section>
+            </div>
         );
     }
 

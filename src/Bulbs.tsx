@@ -25,7 +25,7 @@ const Bulbs = () => {
   };
 
   return (
-    <section className="section fixed-grid has-1-cols">
+    <div className="fixed-grid has-1-cols">
       <h1 className="title">Wizlight - Bulbs</h1>
       {bulbs.map((bulb: BulbStateType) => (
         <div key={bulb.id} className="grid">
@@ -35,7 +35,7 @@ const Bulbs = () => {
           </div>
         </div>
       ))}
-    </section>
+    </div>
   );
 };
 
