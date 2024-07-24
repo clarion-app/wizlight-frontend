@@ -1,6 +1,6 @@
 {
   "name": "@clarion-app/wizlight-frontend",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "",
   "main": "dist/index.js",
   "scripts": {
@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.24.8",
-    "@clarion-app/types": "^1.0.4",
+    "@clarion-app/types": "^1.0.6",
     "@reduxjs/toolkit": "^2.2.6",
     "@uiw/react-color-wheel": "^2.3.0",
     "react": "^18.3.1",
@@ -28,6 +28,7 @@
   },
   "customFields": {
     "initializer": "initializeWizlightFrontend",
+    "setToken": "setWizlightFrontendToken",
     "api": "wizlightFrontendApi",
     "routes": [
       {
