@@ -12,7 +12,7 @@ const rawBaseQuery = (baseUrl: string) => fetchBaseQuery({
 
 function baseQuery(): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> {
     return async (args, api, extraOptions) => {
-        let result = await rawBaseQuery((await backend).url + '/api/clarion-app/wizlight')(args, api, extraOptions);
+        let result = await rawBaseQuery((await backend).url + '/api/clarion-app/wizlights')(args, api, extraOptions);
         return result;
     };
 }
