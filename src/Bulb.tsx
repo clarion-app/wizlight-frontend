@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BulbStateType } from "./types";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
@@ -6,10 +6,42 @@ import { useSetBulbMutation } from "./wizlightApi";
 
 interface BulbPropsType extends BulbStateType {}
 
+type BulbColorType = "Temperature" | "RGB";
+
+// TemperatureSlide is a React component that allows adjusting of color temperature
+const TemperatureSlide = (props: { temperature: number, setTemperature: Function }) => {
+  const [temp, setTemp] = useState(props.temperature);
+
+  return (
+    <div>
+      <input
+        type="range"
+        min="2000"
+        max="6500"
+        value={props.temperature}
+        onChange={(e) => {
+          setTemp(parseInt(e.target.value));
+        }}
+        onMouseUp={(e) => {
+          props.setTemperature(temp);
+        }}
+      />
+    </div>
+  );
+};
+
 const Bulb = (props: BulbPropsType) => {
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
 
-  const { id, red, green, blue, dimming, temperature, state } = props;
+  const { id, dimming, state } = props;
+  const [temperature, setTemperature] = useState<number>(props.temperature || 2700);
+  const [red, setRed] = useState<number>(props.red || 0);
+  const [green, setGreen] = useState<number>(props.green || 0);
+  const [blue, setBlue] = useState<number>(props.blue || 0);
+
+  const [colorType, setColorType] = useState<BulbColorType>(
+    (!red && !green && !blue) ? "Temperature" : "RGB"
+  );
   const [name, setName] = useState<string>(props.name || "");
   const [editName, setEditName] = useState<boolean>(false);
 
@@ -31,6 +63,25 @@ const Bulb = (props: BulbPropsType) => {
     bright = 0.05;
   }
 
+  useEffect(() => {
+    if (colorType === "Temperature") {
+      changeTemperature(temperature);
+    }
+  }, [temperature]);
+
+  const changeTemperature = (temperature: number) => {
+    const newColor = {
+      ...props,
+      temperature: temperature,
+      dimming: dimming,
+      red: 0,
+      green: 0,
+      blue: 0,
+    };
+
+    setBulb({ id: id, state: newColor });
+  };
+
   const changeColor = (color: string) => {
     const red = color[1] + color[2];
     const green = color[3] + color[4];
@@ -42,8 +93,8 @@ const Bulb = (props: BulbPropsType) => {
       green: parseInt(green, 16),
       blue: parseInt(blue, 16),
       dimming: dimming,
+      temperature: 0,
     };
-    delete newColor.temperature;
 
     setBulb({ id: id, state: newColor });
   };
@@ -53,10 +104,28 @@ const Bulb = (props: BulbPropsType) => {
     setEditName(false);
   };
 
+  const switchRGBxTemp = () => {
+    if(colorType === "RGB") {
+      setColorType("Temperature");
+      changeTemperature(temperature);
+    } else {
+      setColorType("RGB");
+      changeColor("#FFFFFF");
+      setRed(255);
+      setGreen(255);
+      setBlue(255);
+    }
+  };
+
   return (
     <div className="has-background-light fixed-grid">
       <div className="grid">
+        {colorType}
+        <button onClick={() => switchRGBxTemp()}>Switch to {colorType === "RGB" ? "Temperature" : "RGB"}</button>
+      </div>
+      <div className="grid">
         <div className="cell">
+          {colorType === "RGB" ? 
           <Wheel
             color={hexToHsva(hexColor)}
             onChange={(color) => {
@@ -65,10 +134,11 @@ const Bulb = (props: BulbPropsType) => {
             }}
             width={100}
             height={100}
-          />
+          /> :
+          <TemperatureSlide temperature={temperature!} setTemperature={setTemperature} />}
         </div>
         <div className="cell">
-          <input type="text" value={hexColor} readOnly />
+          <input type="text" value={colorType === "RGB" ? hexColor : temperature} readOnly />
           {editName ? (
             <>
               <input
