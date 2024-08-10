@@ -39,10 +39,10 @@ export const wizlightApi = (() => {
         invalidatesTags: ['WizlightBulb'],
         }),
         setBulb: builder.mutation({
-        query: ({ id, state }) => ({
-            url: `bulb/${id}`,
+        query: (state) => ({
+            url: `bulb/${state.id}`,
             method: 'PUT',
-            body: { state },
+            body: state,
         }),
         invalidatesTags: ['WizlightBulb'],
         }),

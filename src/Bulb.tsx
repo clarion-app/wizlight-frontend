@@ -3,32 +3,11 @@ import { BulbStateType } from "./types";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
 import { useSetBulbMutation } from "./wizlightApi";
+import { TemperatureSlide } from "./TemperatureSlide";
 
 interface BulbPropsType extends BulbStateType {}
 
 type BulbColorType = "Temperature" | "RGB";
-
-// TemperatureSlide is a React component that allows adjusting of color temperature
-const TemperatureSlide = (props: { temperature: number, setTemperature: Function }) => {
-  const [temp, setTemp] = useState(props.temperature);
-
-  return (
-    <div>
-      <input
-        type="range"
-        min="2000"
-        max="6500"
-        value={props.temperature}
-        onChange={(e) => {
-          setTemp(parseInt(e.target.value));
-        }}
-        onMouseUp={(e) => {
-          props.setTemperature(temp);
-        }}
-      />
-    </div>
-  );
-};
 
 const Bulb = (props: BulbPropsType) => {
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
@@ -79,7 +58,7 @@ const Bulb = (props: BulbPropsType) => {
       blue: 0,
     };
 
-    setBulb({ id: id, state: newColor });
+    setBulb(newColor);
   };
 
   const changeColor = (color: string) => {
@@ -96,11 +75,11 @@ const Bulb = (props: BulbPropsType) => {
       temperature: 0,
     };
 
-    setBulb({ id: id, state: newColor });
+    setBulb(newColor);
   };
 
   const changeName = () => {
-    setBulb({ id: id, state: { ...props, name: name } });
+    setBulb({ ...props, name: name });
     setEditName(false);
   };
 
@@ -159,7 +138,7 @@ const Bulb = (props: BulbPropsType) => {
               </button>
             </>
           )}
-          <button onClick={() => setBulb({ id, state: { ...props, state: state ? 0 : 1 } })} className="button">
+          <button onClick={() => setBulb({ ...props, state: state ? 0 : 1 } )} className="button">
               Turn {state ? "off" : "on"}
           </button>
         </div>
