@@ -1,12 +1,12 @@
 import Bulbs from "./Bulbs";
 import Room from "./Room";
 import Rooms from "./Rooms";
-import { wizlightApi as wizlightFrontendApi, invalidateTag } from "./wizlightApi";
+import { wizlightApi, invalidateTag } from "./wizlightApi";
 import { BackendType, WindowWS } from "@clarion-app/types";
 
 export const backend: BackendType = { url: "http://localhost:8000", token: "" };
 
-const initializeWizlightFrontend = (setBackendUrl: string) => {
+export const initializeFrontend = (setBackendUrl: string) => {
   backend.url = setBackendUrl;
 
   const win = window as unknown as WindowWS;
@@ -19,9 +19,9 @@ const initializeWizlightFrontend = (setBackendUrl: string) => {
   }
 };
 
-const setWizlightFrontendToken = (token: string) => {
+export const setFrontendToken = (token: string) => {
   backend.token = token;
 };
 
-export { Bulbs, Room, Rooms, initializeWizlightFrontend, wizlightFrontendApi, setWizlightFrontendToken };
+export { Bulbs, Room, Rooms, wizlightApi };
 export { useGetBulbsQuery, useGetBulbQuery, useDeleteBulbMutation, useSetBulbMutation } from "./wizlightApi";
