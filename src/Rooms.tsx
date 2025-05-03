@@ -22,7 +22,7 @@ const Rooms = () => {
               <h1 className="title">Wizlight - Rooms</h1>
                 <ul>
                     {data.map((room: RoomType) => (
-                        <a href={"/clarion-app/wizlight/rooms/" + room.name} key={room.id}>
+                        <a href={"/clarion-app/wizlights/rooms/" + room.name} key={room.id}>
                             {room.name}
                         </a>
                     ))}
