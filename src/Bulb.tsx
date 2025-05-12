@@ -2,39 +2,39 @@ import { useEffect, useState } from "react";
 import { BulbStateType } from "./types";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
-import { useSetBulbMutation, useDeleteBulbMutation } from "./wizlightApi";
+import { useGetBulbsQuery, useSetBulbMutation, useDeleteBulbMutation } from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
+import { WindowWS } from "@clarion-app/types";
 
 interface BulbPropsType extends BulbStateType {}
 
 type BulbColorType = "Temperature" | "RGB";
 
-const Bulb = (props: BulbPropsType) => {
+const Bulb = ({ id }: { id: string }) => {
+  const { data: bulbs, isLoading: isLoadingBulbs, refetch } = useGetBulbsQuery(null);
+  const bulb = bulbs?.find((bulb: BulbStateType) => bulb.id === id);
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
   const [deleteBulb] = useDeleteBulbMutation();
 
-  const { id, dimming, state, last_seen } = props;
   const [temperature, setTemperature] = useState<number>(
-    props.temperature || 2700
+    bulb.temperature || 2700
   );
-  const [red, setRed] = useState<number>(props.red || 0);
-  const [green, setGreen] = useState<number>(props.green || 0);
-  const [blue, setBlue] = useState<number>(props.blue || 0);
+  const [red, setRed] = useState<number>(bulb.red || 0);
+  const [green, setGreen] = useState<number>(bulb.green || 0);
+  const [blue, setBlue] = useState<number>(bulb.blue || 0);
 
   const [colorType, setColorType] = useState<BulbColorType>(
     !red && !green && !blue ? "Temperature" : "RGB"
   );
-  const [name, setName] = useState<string>(props.name || "");
+  const [name, setName] = useState<string>(bulb.name || "");
   const [editName, setEditName] = useState<boolean>(false);
 
-  const hexValue = `#${red.toString(16).padStart(2, "0")}${green
-    .toString(16)
-    .padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
+  const hexValue = `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 
   const [hexColor, setHexColor] = useState<string>(hexValue);
 
   const seconds_ago = Math.floor(
-    (new Date().getTime() - new Date(last_seen.last_seen_at).getTime()) / 1000
+    (new Date().getTime() - new Date(bulb.last_seen.last_seen_at).getTime()) / 1000
   );
   const last_seen_ago =
     seconds_ago < 60
@@ -46,16 +46,41 @@ const Bulb = (props: BulbPropsType) => {
       : `${Math.floor(seconds_ago / 86400)} days ago`;
 
   let bright = 1.0;
-  if (dimming < 100) {
-    bright = dimming / 100;
+  if (bulb.dimming < 100) {
+    bright = bulb.dimming / 100;
     if (bright < 0.1) {
       bright = 0.1;
     }
   }
 
-  if (props.state === 0) {
+  if (bulb.state === 0) {
     bright = 0.05;
   }
+
+  const win = window as unknown as WindowWS;
+
+  useEffect(() => {
+    win.Echo
+    .channel("clarion-app-wizlights")
+    .listen(
+      ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
+      (message: any) => {
+        if(message.bulb.id !== id) {
+          return;
+        }
+        console.log("BulbStatusEvent", message.bulb.name, message.bulb.state);
+        setName(message.bulb.name);
+        setTemperature(message.bulb.temperature);
+        setRed(message.bulb.red);
+        setGreen(message.bulb.green);
+        setBlue(message.bulb.blue);
+        setHexColor(
+          `#${message.bulb.red.toString(16).padStart(2, "0")}${message.bulb.green.toString(16).padStart(2, "0")}${message.bulb.blue.toString(16).padStart(2, "0")}`
+        );
+      }
+    );
+  }, []);
+
 
   useEffect(() => {
     if (colorType === "Temperature") {
@@ -65,9 +90,9 @@ const Bulb = (props: BulbPropsType) => {
 
   const changeTemperature = (temperature: number) => {
     const newColor = {
-      ...props,
+      ...bulb,
       temperature: temperature,
-      dimming: dimming,
+      dimming: bulb.dimming,
       red: 0,
       green: 0,
       blue: 0,
@@ -82,11 +107,11 @@ const Bulb = (props: BulbPropsType) => {
     const blue = color[5] + color[6];
 
     let newColor = {
-      ...props,
+      ...bulb,
       red: parseInt(red, 16),
       green: parseInt(green, 16),
       blue: parseInt(blue, 16),
-      dimming: dimming,
+      dimming: bulb.dimming,
       temperature: 0,
     };
 
@@ -94,7 +119,7 @@ const Bulb = (props: BulbPropsType) => {
   };
 
   const changeName = () => {
-    setBulb({ ...props, name: name });
+    setBulb({ ...bulb, name: name });
     setEditName(false);
   };
 
@@ -171,10 +196,10 @@ const Bulb = (props: BulbPropsType) => {
             </>
           )}
           <button
-            onClick={() => setBulb({ ...props, state: state ? 0 : 1 })}
+            onClick={() => setBulb({ ...bulb, state: bulb.state ? 0 : 1 })}
             className="button"
           >
-            Turn {state ? "off" : "on"}
+            Turn {bulb.state ? "off" : "on"}
           </button>
         </div>
       </div>
