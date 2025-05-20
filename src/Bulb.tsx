@@ -81,12 +81,13 @@ const Bulb = ({ id }: { id: string }) => {
     );
   }, []);
 
-
+/*
   useEffect(() => {
     if (colorType === "Temperature") {
       changeTemperature(temperature);
     }
   }, [temperature]);
+  */
 
   const changeTemperature = (temperature: number) => {
     const newColor = {
