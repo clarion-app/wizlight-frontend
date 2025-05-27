@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { BulbStateType } from "./types";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
-import { useGetBulbsQuery, useSetBulbMutation, useDeleteBulbMutation } from "./wizlightApi";
+import {
+  useGetBulbsQuery,
+  useSetBulbMutation,
+  useDeleteBulbMutation,
+} from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
 import { WindowWS } from "@clarion-app/types";
 
@@ -11,7 +15,11 @@ interface BulbPropsType extends BulbStateType {}
 type BulbColorType = "Temperature" | "RGB";
 
 const Bulb = ({ id }: { id: string }) => {
-  const { data: bulbs, isLoading: isLoadingBulbs, refetch } = useGetBulbsQuery(null);
+  const {
+    data: bulbs,
+    isLoading: isLoadingBulbs,
+    refetch,
+  } = useGetBulbsQuery(null);
   const bulb = bulbs?.find((bulb: BulbStateType) => bulb.id === id);
   const [setBulb, { isLoading, isSuccess, isError }] = useSetBulbMutation();
   const [deleteBulb] = useDeleteBulbMutation();
@@ -29,12 +37,15 @@ const Bulb = ({ id }: { id: string }) => {
   const [name, setName] = useState<string>(bulb.name || "");
   const [editName, setEditName] = useState<boolean>(false);
 
-  const hexValue = `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
+  const hexValue = `#${red.toString(16).padStart(2, "0")}${green
+    .toString(16)
+    .padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 
   const [hexColor, setHexColor] = useState<string>(hexValue);
 
   const seconds_ago = Math.floor(
-    (new Date().getTime() - new Date(bulb.last_seen.last_seen_at).getTime()) / 1000
+    (new Date().getTime() - new Date(bulb.last_seen.last_seen_at).getTime()) /
+      1000
   );
   const last_seen_ago =
     seconds_ago < 60
@@ -60,12 +71,10 @@ const Bulb = ({ id }: { id: string }) => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    win.Echo
-    .channel("clarion-app-wizlights")
-    .listen(
+    win.Echo.channel("clarion-app-wizlights").listen(
       ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
       (message: any) => {
-        if(message.bulb.id !== id) {
+        if (message.bulb.id !== id) {
           return;
         }
         console.log("BulbStatusEvent", message.bulb.name, message.bulb.state);
@@ -75,13 +84,19 @@ const Bulb = ({ id }: { id: string }) => {
         setGreen(message.bulb.green);
         setBlue(message.bulb.blue);
         setHexColor(
-          `#${message.bulb.red.toString(16).padStart(2, "0")}${message.bulb.green.toString(16).padStart(2, "0")}${message.bulb.blue.toString(16).padStart(2, "0")}`
+          `#${message.bulb.red
+            .toString(16)
+            .padStart(2, "0")}${message.bulb.green
+            .toString(16)
+            .padStart(2, "0")}${message.bulb.blue
+            .toString(16)
+            .padStart(2, "0")}`
         );
       }
     );
   }, []);
 
-/*
+  /*
   useEffect(() => {
     if (colorType === "Temperature") {
       changeTemperature(temperature);
