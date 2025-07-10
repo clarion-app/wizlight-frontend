@@ -1,5 +1,6 @@
 import { useParams } from "react-router-dom";
 import {
+  useDeleteRoomMutation,
   useGetBulbsQuery,
   useGetRoomsQuery,
   useSetBulbMutation,
@@ -10,8 +11,10 @@ import Bulb from "./Bulb";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Room = () => {
+  const navigate = useNavigate();
   const { name } = useParams();
   const {
     data: rooms,
@@ -36,8 +39,11 @@ const Room = () => {
     },
   ] = useSetBulbMutation();
   const [setRoom] = useSetRoomMutation();
+  const [deleteRoom] = useDeleteRoomMutation();
 
   const room: RoomType = rooms?.find((room: RoomType) => room.name === name);
+
+  console.log("Room data: ", room);
 
   const [roomState, setRoomState] = useState(room?.state || 0);
 
@@ -151,8 +157,15 @@ const Room = () => {
   return (
     <div className="fixed-grid has-2-cols">
       <h1 className="title">Wizlight - {name}</h1>
-
-      {/* Room Color/Name Edit Interface */}
+      <button
+        className="button"
+        onClick={() => {
+          deleteRoom(room.id);
+          navigate("/clarion-app/wizlights/rooms");
+        }}
+      >
+        Delete Room
+      </button>
       <div
         style={{
           marginBottom: "1em",

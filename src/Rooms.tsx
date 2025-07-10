@@ -1,6 +1,7 @@
 import { useCreateRoomMutation, useGetRoomsQuery, useSetRoomMutation } from "./wizlightApi"
 import { RoomType } from "./types";
 import { useState } from "react";
+import "./style.css";
 
 const Rooms = () => {
     const { data, error, isLoading, isSuccess, isError } = useGetRoomsQuery(null);
@@ -20,11 +21,13 @@ const Rooms = () => {
         return (
             <div className="fixed-grid has-1-cols">
               <h1 className="title">Wizlight - Rooms</h1>
-                <ul>
+                <ul className="menu-list">
                     {data.map((room: RoomType) => (
-                        <a href={"/clarion-app/wizlights/rooms/" + room.name} key={room.id}>
-                            {room.name}
-                        </a>
+                        <li className="room-item has-text-weight-semibold is-size-5 p-4 has-radius" key={room.id}>
+                            <a href={"/clarion-app/wizlights/rooms/" + room.name} key={room.id}>
+                                {room.name}
+                            </a>
+                        </li>
                     ))}
                 </ul>
                 <input type="text" value={newRoomName} onChange={(e) => setNewRoomName(e.target.value)} />
@@ -33,7 +36,9 @@ const Rooms = () => {
                     createRoom({ name: newRoomName });
                     setNewRoomName("");
                   }
-                }>Add room</button>
+                }
+                className="button"
+                >Add room</button>
             </div>
         );
     }

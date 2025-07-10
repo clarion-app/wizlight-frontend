@@ -35,7 +35,7 @@ const Bulb = ({ id }: { id: string }) => {
     !red && !green && !blue ? "Temperature" : "RGB"
   );
   const [name, setName] = useState<string>(bulb.name || "");
-  const [editName, setEditName] = useState<boolean>(false);
+  const [isEditingName, setIsEditingName] = useState<boolean>(false);
 
   const hexValue = `#${red.toString(16).padStart(2, "0")}${green
     .toString(16)
@@ -43,8 +43,10 @@ const Bulb = ({ id }: { id: string }) => {
 
   const [hexColor, setHexColor] = useState<string>(hexValue);
 
+  const tzOffset = new Date().getTimezoneOffset() * 60000; // in milliseconds
+
   const seconds_ago = Math.floor(
-    (new Date().getTime() - new Date(bulb.last_seen.last_seen_at).getTime()) /
+    ((new Date().getTime() - new Date(bulb.last_seen.last_seen_at).getTime()) + tzOffset) /
       1000
   );
   const last_seen_ago =
@@ -136,7 +138,7 @@ const Bulb = ({ id }: { id: string }) => {
 
   const changeName = () => {
     setBulb({ ...bulb, name: name });
-    setEditName(false);
+    setIsEditingName(false);
   };
 
   const switchRGBxTemp = () => {
@@ -190,7 +192,7 @@ const Bulb = ({ id }: { id: string }) => {
             value={colorType === "RGB" ? hexColor : temperature}
             readOnly
           />
-          {editName ? (
+          {isEditingName ? (
             <>
               <input
                 type="text"
@@ -206,7 +208,7 @@ const Bulb = ({ id }: { id: string }) => {
             <>
               <h2>{name}</h2>
               <h3>Last seen {last_seen_ago}</h3>
-              <button onClick={() => setEditName(true)} className="button">
+              <button onClick={() => setIsEditingName(true)} className="button">
                 Edit
               </button>
             </>

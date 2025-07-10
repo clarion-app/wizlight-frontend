@@ -1,0 +1,8 @@
+.room-item:hover {
+  background-color: hsl(217, 71%, 53%); /* Bulma's $link color */
+  color: white;
+}
+
+.room-item:hover a {
+  color: white;
+}
