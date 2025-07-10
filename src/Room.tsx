@@ -12,6 +12,9 @@ import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { TemperatureSlide } from "./TemperatureSlide";
+
+type RoomColorType = "Temperature" | "RGB";
 
 const Room = () => {
   const navigate = useNavigate();
@@ -51,9 +54,14 @@ const Room = () => {
   const [red, setRed] = useState(room?.red || 0);
   const [green, setGreen] = useState(room?.green || 0);
   const [blue, setBlue] = useState(room?.blue || 0);
+  const [temperature, setTemperature] = useState(room?.temperature || 2700);
   const [dimming, setDimming] = useState(room?.dimming || 100);
   const [editName, setEditName] = useState(false);
   const [roomName, setRoomName] = useState(room?.name || "");
+
+  const [colorType, setColorType] = useState<RoomColorType>(
+    !red && !green && !blue ? "Temperature" : "RGB"
+  );
 
   // Hex color for Wheel
   const hexValue = `#${red.toString(16).padStart(2, "0")}${green
@@ -66,6 +74,7 @@ const Room = () => {
       setRed(room.red || 0);
       setGreen(room.green || 0);
       setBlue(room.blue || 0);
+      setTemperature(room.temperature || 2700);
       setDimming(room.dimming || 100);
       setRoomName(room.name || "");
       setHexColor(
@@ -74,6 +83,7 @@ const Room = () => {
           .padStart(2, "0")}${(room.blue || 0).toString(16).padStart(2, "0")}`
       );
       setRoomState(room.state || 0);
+      setColorType(!room.red && !room.green && !room.blue ? "Temperature" : "RGB");
     }
   }, [room]);
 
@@ -106,9 +116,10 @@ const Room = () => {
       const newValue = {
         ...room,
         name: roomName,
-        red,
-        green,
-        blue,
+        red: r,
+        green: g,
+        blue: b,
+        temperature: 0,
         dimming,
         state: roomState,
       };
@@ -117,6 +128,41 @@ const Room = () => {
         id: room.id,
         state: newValue,
       });
+    }
+  };
+
+  const handleTemperatureChange = (temp: number) => {
+    setTemperature(temp);
+    if (room) {
+      const newValue = {
+        ...room,
+        name: roomName,
+        red: 0,
+        green: 0,
+        blue: 0,
+        temperature: temp,
+        dimming,
+        state: roomState,
+      };
+      console.log("Saving room: ", newValue);
+      setRoom({
+        id: room.id,
+        state: newValue,
+      });
+    }
+  };
+
+  const switchRGBxTemp = () => {
+    if (colorType === "RGB") {
+      setColorType("Temperature");
+      handleTemperatureChange(temperature);
+    } else {
+      setColorType("RGB");
+      setRed(255);
+      setGreen(255);
+      setBlue(255);
+      setHexColor("#FFFFFF");
+      handleRoomColorChange({ hex: "#FFFFFF" });
     }
   };
 
@@ -155,118 +201,255 @@ const Room = () => {
   };
 
   return (
-    <div className="fixed-grid has-2-cols">
-      <h1 className="title">Wizlight - {name}</h1>
-      <button
-        className="button"
-        onClick={() => {
-          deleteRoom(room.id);
-          navigate("/clarion-app/wizlights/rooms");
-        }}
-      >
-        Delete Room
-      </button>
-      <div
-        style={{
-          marginBottom: "1em",
-          background: "#f8f8f8",
-          padding: "1em",
-          borderRadius: "8px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "1em" }}>
-          <Wheel
-            color={hexToHsva(hexColor)}
-            onChange={handleRoomColorChange}
-            width={100}
-            height={100}
-          />
-          <div>
-            {editName ? (
-              <>
-                <input
-                  type="text"
-                  value={roomName}
-                  onChange={(e) => setRoomName(e.target.value)}
-                  autoFocus
-                />
-                <button onClick={handleRoomSave} className="button">
-                  Save
-                </button>
-                <button onClick={() => setEditName(false)} className="button">
-                  Cancel
-                </button>
-              </>
-            ) : (
-              <>
-                <h2>{roomName}</h2>
-                <button onClick={() => setEditName(true)} className="button">
-                  Edit
-                </button>
+    <div className="container">
+      <div className="columns is-multiline">
+        <div className="column is-full">
+          <div className="level">
+            <div className="level-left">
+              <div className="level-item">
+                <h1 className="title">🏠 {name}</h1>
+              </div>
+            </div>
+            <div className="level-right">
+              <div className="level-item">
                 <button
+                  className="button is-danger is-outlined"
                   onClick={() => {
-                    const newState = roomState ? 0 : 1;
-                    console.log("Current state: ", roomState);
-                    console.log("Changing state to: ", newState);
-                    setRoomState(newState);
-                    if (room) {
-                      setRoom({
-                        id: room.id,
-                        state: {
-                          ...room,
-                          name: roomName,
-                          red,
-                          green,
-                          blue,
-                          dimming,
-                          state: newState,
-                        },
-                      });
-                    }
+                    deleteRoom(room.id);
+                    navigate("/clarion-app/wizlights/rooms");
                   }}
-                  className="button"
                 >
-                  Turn {roomState ? "off" : "on"}
+                  🗑️ Delete Room
                 </button>
-              </>
-            )}
-            <div>
-              <label>
-                Dimming:
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={dimming}
-                  onChange={handleDimmingChange}
-                  style={{ width: "100px", marginLeft: "0.5em" }}
-                />
-                <span style={{ marginLeft: "0.5em" }}>{dimming}%</span>
-              </label>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="fixed-grid has-1-cols">
-        {roomBulbs.map((bulb: BulbStateType) => (
-          <div key={bulb.id} className="grid">
-            <div className="cell">
-              <Bulb {...bulb} />
+        <div className="column is-full">
+          <div className="card">
+            <header className="card-header">
+              <div className="card-header-title">
+                <span className={`tag is-medium ${colorType === "RGB" ? "is-primary" : "is-warning"} mr-3`}>
+                  {colorType}
+                </span>
+                <span className={`tag is-small ${roomState ? "is-success" : "is-light"} mr-2`}>
+                  {roomState ? "🔆 ON" : "⭕ OFF"}
+                </span>
+                <span className="tag is-small is-info mr-3">
+                  {dimming}%
+                </span>
+                <div className="buttons">
+                  <button 
+                    className={`button is-small ${colorType === "RGB" ? "is-warning" : "is-info"}`}
+                    onClick={switchRGBxTemp}
+                    title={`Switch to ${colorType === "RGB" ? "Temperature" : "RGB"} mode`}
+                  >
+                    {colorType === "RGB" ? "🌡️" : "🎨"} Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <div className="card-content">
+              <div className="columns">
+                <div className="column is-one-third">
+                  <div className="has-text-centered mb-4">
+                    {colorType === "RGB" ? (
+                      <div className="color-wheel-container">
+                        <Wheel
+                          color={hexToHsva(hexColor)}
+                          onChange={handleRoomColorChange}
+                          width={150}
+                          height={150}
+                        />
+                        <div className="field mt-3">
+                          <div className="control">
+                            <input
+                              className="input is-small has-text-centered"
+                              type="text"
+                              value={hexColor}
+                              readOnly
+                              style={{ 
+                                backgroundColor: hexColor,
+                                color: red + green + blue > 384 ? '#000' : '#fff',
+                                border: `2px solid ${red + green + blue > 384 ? '#000' : '#fff'}`
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="temperature-container">
+                        <TemperatureSlide
+                          temperature={temperature}
+                          setTemperature={handleTemperatureChange}
+                        />
+                        <div className="field mt-3">
+                          <div className="control">
+                            <input
+                              className="input is-small has-text-centered"
+                              type="text"
+                              value={`${temperature}K`}
+                              readOnly
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="column">
+                  <div className="content">
+                    {editName ? (
+                      <div className="field has-addons">
+                        <div className="control is-expanded">
+                          <input
+                            className="input"
+                            type="text"
+                            value={roomName}
+                            onChange={(e) => setRoomName(e.target.value)}
+                            autoFocus
+                            placeholder="Room name"
+                          />
+                        </div>
+                        <div className="control">
+                          <button onClick={handleRoomSave} className="button is-success">
+                            ✅
+                          </button>
+                        </div>
+                        <div className="control">
+                          <button 
+                            onClick={() => {
+                              setEditName(false);
+                              setRoomName(room?.name || "");
+                            }} 
+                            className="button is-light"
+                          >
+                            ❌
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <h2 className="title is-4 mb-2">
+                          {roomName}
+                          <button 
+                            onClick={() => setEditName(true)} 
+                            className="button is-small is-ghost ml-2"
+                          >
+                            ✏️
+                          </button>
+                        </h2>
+                      </>
+                    )}
+
+                    <div className="field mt-4">
+                      <label className="label">🔆 Brightness</label>
+                      <div className="field has-addons">
+                        <div className="control is-expanded">
+                          <input
+                            className="slider is-fullwidth"
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={dimming}
+                            onChange={handleDimmingChange}
+                          />
+                        </div>
+                        <div className="control">
+                          <span className="tag is-info is-medium">{dimming}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="field mt-4">
+                      <div className="control">
+                        <button
+                          onClick={() => {
+                            const newState = roomState ? 0 : 1;
+                            setRoomState(newState);
+                            if (room) {
+                              setRoom({
+                                id: room.id,
+                                state: {
+                                  ...room,
+                                  name: roomName,
+                                  red,
+                                  green,
+                                  blue,
+                                  dimming,
+                                  state: newState,
+                                },
+                              });
+                            }
+                          }}
+                          className={`button is-large is-fullwidth ${
+                            roomState ? "is-success" : "is-light"
+                          }`}
+                        >
+                          {roomState ? "💡 Turn Off Room" : "🔌 Turn On Room"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <h3>Unassigned Bulbs</h3>
-      <ul>
-        {unassignedBulbs.map((bulb: BulbStateType) => (
-          <li key={bulb.id}>
-            {bulb.name}
-            <button onClick={() => handleAssign(bulb)}>Assign to {name}</button>
-          </li>
-        ))}
-      </ul>
+        <div className="column is-full">
+          <h2 className="title is-4">💡 Room Bulbs</h2>
+          <div className="columns is-multiline">
+            {roomBulbs.map((bulb: BulbStateType) => (
+              <div key={bulb.id} className="column is-one-third">
+                <Bulb id={bulb.id} />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {unassignedBulbs.length > 0 && (
+          <div className="column is-full">
+            <div className="card">
+              <header className="card-header">
+                <div className="card-header-title">
+                  <span className="tag is-medium is-warning mr-3">🔌 Unassigned Bulbs</span>
+                </div>
+              </header>
+              <div className="card-content">
+                <div className="columns is-multiline">
+                  {unassignedBulbs.map((bulb: BulbStateType) => (
+                    <div key={bulb.id} className="column is-half">
+                      <div className="box">
+                        <div className="level">
+                          <div className="level-left">
+                            <div className="level-item">
+                              <span className="title is-6">💡 {bulb.name}</span>
+                            </div>
+                          </div>
+                          <div className="level-right">
+                            <div className="level-item">
+                              <button 
+                                onClick={() => handleAssign(bulb)}
+                                className="button is-primary is-small"
+                              >
+                                ➕ Assign to {name}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

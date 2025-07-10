@@ -155,70 +155,170 @@ const Bulb = ({ id }: { id: string }) => {
   };
 
   return (
-    <div className="has-background-light fixed-grid">
-      <div className="grid">
-        {colorType}
-        <div className="cell">
-          <button onClick={() => switchRGBxTemp()}>
-            Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
-          </button>
+    <div className="card">
+      <header className="card-header">
+        <div className="card-header-title">
+          <span className={`tag is-medium ${colorType === "RGB" ? "is-primary" : "is-warning"} mr-3`}>
+            {colorType}
+          </span>
+          <span className={`tag is-small ${bulb.state ? "is-success" : "is-light"} mr-2`}>
+            {bulb.state ? "🔆 ON" : "⭕ OFF"}
+          </span>
+          <span className="tag is-small is-info mr-3">
+            {bulb.dimming}%
+          </span>
+          <div className="buttons">
+            <button 
+              className={`button is-small ${colorType === "RGB" ? "is-warning" : "is-info"}`}
+              onClick={() => switchRGBxTemp()}
+              title={`Switch to ${colorType === "RGB" ? "Temperature" : "RGB"} mode`}
+            >
+              {colorType === "RGB" ? "🌡️" : "🎨"} Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
+            </button>
+            <button 
+              className="button is-small is-danger is-outlined" 
+              onClick={() => deleteBulb(id)}
+              title="Delete this bulb"
+            >
+              🗑️ Delete
+            </button>
+          </div>
         </div>
-        <div className="cell">
-          <button onClick={() => deleteBulb(id)}>Delete</button>
-        </div>
-      </div>
-      <div className="grid">
-        <div className="cell">
-          {colorType === "RGB" ? (
-            <Wheel
-              color={hexToHsva(hexColor)}
-              onChange={(color) => {
-                setHexColor(color.hex);
-                changeColor(color.hex);
-              }}
-              width={100}
-              height={100}
-            />
-          ) : (
-            <TemperatureSlide
-              temperature={temperature!}
-              setTemperature={setTemperature}
-            />
-          )}
-        </div>
-        <div className="cell">
-          <input
-            type="text"
-            value={colorType === "RGB" ? hexColor : temperature}
-            readOnly
-          />
-          {isEditingName ? (
-            <>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                autoFocus
-              />
-              <button onClick={() => changeName()} className="button">
-                Save
-              </button>
-            </>
-          ) : (
-            <>
-              <h2>{name}</h2>
-              <h3>Last seen {last_seen_ago}</h3>
-              <button onClick={() => setIsEditingName(true)} className="button">
-                Edit
-              </button>
-            </>
-          )}
-          <button
-            onClick={() => setBulb({ ...bulb, state: bulb.state ? 0 : 1 })}
-            className="button"
-          >
-            Turn {bulb.state ? "off" : "on"}
-          </button>
+      </header>
+
+      <div className="card-content">
+        <div className="columns">
+          <div className="column is-one-third">
+            <div className="has-text-centered mb-4">
+              {colorType === "RGB" ? (
+                <div className="color-wheel-container">
+                  <Wheel
+                    color={hexToHsva(hexColor)}
+                    onChange={(color) => {
+                      setHexColor(color.hex);
+                      changeColor(color.hex);
+                    }}
+                    width={150}
+                    height={150}
+                  />
+                  <div className="field mt-3">
+                    <div className="control">
+                      <input
+                        className="input is-small has-text-centered"
+                        type="text"
+                        value={hexColor}
+                        readOnly
+                        style={{ 
+                          backgroundColor: hexColor,
+                          color: red + green + blue > 384 ? '#000' : '#fff',
+                          border: `2px solid ${red + green + blue > 384 ? '#000' : '#fff'}`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="temperature-container">
+                  <TemperatureSlide
+                    temperature={temperature!}
+                    setTemperature={setTemperature}
+                  />
+                  <div className="field mt-3">
+                    <div className="control">
+                      <input
+                        className="input is-small has-text-centered"
+                        type="text"
+                        value={`${temperature}K`}
+                        readOnly
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="column">
+            <div className="content">
+              {isEditingName ? (
+                <div className="field has-addons">
+                  <div className="control is-expanded">
+                    <input
+                      className="input"
+                      type="text"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      autoFocus
+                      placeholder="Bulb name"
+                    />
+                  </div>
+                  <div className="control">
+                    <button onClick={() => changeName()} className="button is-success">
+                      ✅
+                    </button>
+                  </div>
+                  <div className="control">
+                    <button 
+                      onClick={() => {
+                        setIsEditingName(false);
+                        setName(bulb.name || "");
+                      }} 
+                      className="button is-light"
+                    >
+                      ❌
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <h2 className="title is-4 mb-2">
+                    {name}
+                    <button 
+                      onClick={() => setIsEditingName(true)} 
+                      className="button is-small is-ghost ml-2"
+                    >
+                      ✏️
+                    </button>
+                  </h2>
+                  <p className="subtitle is-6 has-text-grey">
+                    🕒 Last seen {last_seen_ago}
+                  </p>
+                </>
+              )}
+
+              <div className="field mt-4">
+                <div className="control">
+                  <button
+                    onClick={() => setBulb({ ...bulb, state: bulb.state ? 0 : 1 })}
+                    className={`button is-large is-fullwidth ${
+                      bulb.state ? "is-success" : "is-light"
+                    }`}
+                    disabled={isLoading}
+                  >
+                    {bulb.state ? "💡 Turn Off" : "🔌 Turn On"}
+                  </button>
+                </div>
+              </div>
+
+              {isLoading && (
+                <div className="notification is-info is-light mt-3">
+                  ⏳ Updating bulb...
+                </div>
+              )}
+
+              {isError && (
+                <div className="notification is-danger is-light mt-3">
+                  ⚠️ Failed to update bulb
+                </div>
+              )}
+
+              {isSuccess && (
+                <div className="notification is-success is-light mt-3">
+                  ✅ Bulb updated successfully
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
