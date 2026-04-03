@@ -403,9 +403,9 @@ const Room = () => {
         <div className="column is-full">
           <h2 className="title is-4">💡 Room Bulbs</h2>
           <div className="columns is-multiline">
-            {roomBulbs.map((bulb: BulbStateType) => (
+            {roomBulbs.filter((bulb: BulbStateType) => bulb.id).map((bulb: BulbStateType) => (
               <div key={bulb.id} className="column is-one-third">
-                <Bulb id={bulb.id} />
+                <Bulb id={bulb.id!} />
               </div>
             ))}
           </div>

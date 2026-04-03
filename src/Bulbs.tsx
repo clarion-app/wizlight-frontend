@@ -27,10 +27,10 @@ const Bulbs = () => {
   return (
     <div className="fixed-grid has-1-cols">
       <h1 className="title">Wizlight - Bulbs</h1>
-      {bulbs.map((bulb: BulbStateType) => (
+      {bulbs.filter((bulb: BulbStateType) => bulb.id).map((bulb: BulbStateType) => (
         <div key={bulb.id} className="grid">
           <div className="cell">
-            <Bulb {...bulb} />
+            <Bulb id={bulb.id!} />
             
           </div>
         </div>
