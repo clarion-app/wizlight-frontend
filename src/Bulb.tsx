@@ -79,7 +79,6 @@ const Bulb = ({ id }: { id: string }) => {
         if (message.bulb.id !== id) {
           return;
         }
-        console.log("BulbStatusEvent", message.bulb.name, message.bulb.state);
         setName(message.bulb.name);
         setTemperature(message.bulb.temperature);
         setRed(message.bulb.red);

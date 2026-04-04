@@ -46,8 +46,6 @@ const Room = () => {
 
   const room: RoomType = rooms?.find((room: RoomType) => room.name === name);
 
-  console.log("Room data: ", room);
-
   const [roomState, setRoomState] = useState(room?.state || 0);
 
   // Room color state
@@ -123,7 +121,6 @@ const Room = () => {
         dimming,
         state: roomState,
       };
-      console.log("Saving room: ", newValue);
       setRoom({
         id: room.id,
         state: newValue,
@@ -144,7 +141,6 @@ const Room = () => {
         dimming,
         state: roomState,
       };
-      console.log("Saving room: ", newValue);
       setRoom({
         id: room.id,
         state: newValue,
@@ -195,7 +191,6 @@ const Room = () => {
       dimming,
       state: roomState,
     };
-    console.log("Saving room: ", newValue);
     setRoom({ id: room.id, state: newValue });
     setEditName(false);
   };

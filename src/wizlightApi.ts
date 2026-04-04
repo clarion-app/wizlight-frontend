@@ -1,27 +1,12 @@
-import { createApi, fetchBaseQuery, BaseQueryFn, FetchArgs, FetchBaseQueryError, TagDescription } from '@reduxjs/toolkit/query/react';
-import { backend } from '.';
+import { createApi, TagDescription } from '@reduxjs/toolkit/query/react';
+import { createBaseQuery } from '@clarion-app/frontend-base';
+import { backend } from './config';
 import { BulbStateType } from './types';
-
-const rawBaseQuery = (baseUrl: string) => fetchBaseQuery({
-    baseUrl: baseUrl,
-    credentials: 'include',
-    prepareHeaders: (headers) => {
-        headers.set('Content-Type', 'application/json');
-        return headers;
-    }
-});
-
-function baseQuery(): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> {
-    return async (args, api, extraOptions) => {
-        let result = await rawBaseQuery((await backend).url + '/api/clarion-app/wizlights')(args, api, extraOptions);
-        return result;
-    };
-}
 
 export const wizlightApi = (() => {
     const api = createApi({
         reducerPath: 'wizlightApi',
-        baseQuery: baseQuery(),
+        baseQuery: createBaseQuery({ routePrefix: '/api/clarion-app/wizlights', backendConfig: backend }),
         tagTypes: ['WizlightBulb', 'WizlightRoom'],
         endpoints: (builder) => ({
             getBulbs: builder.query({
@@ -84,7 +69,6 @@ export const wizlightApi = (() => {
                     return { data: bulb };
                 },
                 onQueryStarted: (bulb, { dispatch }) => {
-                    console.log(bulb);
                     try {
                         dispatch(
                             api.util.updateQueryData('getBulb', bulb.id, (draft) => {
@@ -102,7 +86,6 @@ export const wizlightApi = (() => {
 })();
 
 export const invalidateTag = () => {
-    console.log('invalidateTag');
     wizlightApi.util.invalidateTags(['WizlightBulb', 'WizlightRoom']);
 };
 
