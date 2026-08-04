@@ -66,6 +66,14 @@ const Room = () => {
     .toString(16)
     .padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
   const [hexColor, setHexColor] = useState(hexValue);
+  const [hexInputText, setHexInputText] = useState(hexValue);
+  const wheelColor = hexToHsva(hexColor);
+  wheelColor.v = 100;
+
+  // Keep the text field in sync with the applied color, but only once it's a valid hex
+  React.useEffect(() => {
+    setHexInputText(hexColor);
+  }, [hexColor]);
 
   React.useEffect(() => {
     if (room) {
@@ -103,10 +111,21 @@ const Room = () => {
   };
 
   const handleRoomColorChange = (color: any) => {
-    const r = parseInt(color.hex.slice(1, 3), 16);
-    const g = parseInt(color.hex.slice(3, 5), 16);
-    const b = parseInt(color.hex.slice(5, 7), 16);
-    setHexColor(color.hex);
+    let r = parseInt(color.hex.slice(1, 3), 16);
+    let g = parseInt(color.hex.slice(3, 5), 16);
+    let b = parseInt(color.hex.slice(5, 7), 16);
+    // Normalize to full value so the wheel stays vivid; actual light output is the Brightness slider's job
+    const max = Math.max(r, g, b);
+    if (max > 0 && max < 255) {
+      const scale = 255 / max;
+      r = Math.round(r * scale);
+      g = Math.round(g * scale);
+      b = Math.round(b * scale);
+    }
+    const normalizedHex = `#${r.toString(16).padStart(2, "0")}${g
+      .toString(16)
+      .padStart(2, "0")}${b.toString(16).padStart(2, "0")}`;
+    setHexColor(normalizedHex);
     setRed(r);
     setGreen(g);
     setBlue(b);
@@ -253,7 +272,7 @@ const Room = () => {
                     {colorType === "RGB" ? (
                       <div className="color-wheel-container">
                         <Wheel
-                          color={hexToHsva(hexColor)}
+                          color={wheelColor}
                           onChange={handleRoomColorChange}
                           width={150}
                           height={150}
@@ -263,8 +282,23 @@ const Room = () => {
                             <input
                               className="input is-small has-text-centered"
                               type="text"
-                              value={hexColor}
-                              readOnly
+                              value={hexInputText}
+                              onChange={(e) => {
+                                let value = e.target.value;
+                                if (value && !value.startsWith("#")) {
+                                  value = `#${value}`;
+                                }
+                                setHexInputText(value);
+                                if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+                                  handleRoomColorChange({ hex: value });
+                                }
+                              }}
+                              onBlur={() => {
+                                if (!/^#[0-9a-fA-F]{6}$/.test(hexInputText)) {
+                                  setHexInputText(hexColor);
+                                }
+                              }}
+                              maxLength={7}
                               style={{ 
                                 backgroundColor: hexColor,
                                 color: red + green + blue > 384 ? '#000' : '#fff',
