@@ -42,6 +42,12 @@ const Bulb = ({ id }: { id: string }) => {
     .padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
 
   const [hexColor, setHexColor] = useState<string>(hexValue);
+  const [hexInputText, setHexInputText] = useState<string>(hexValue);
+
+  // Keep the text field in sync with the applied color, but only once it's a valid hex
+  useEffect(() => {
+    setHexInputText(hexColor);
+  }, [hexColor]);
 
   const tzOffset = new Date().getTimezoneOffset() * 60000; // in milliseconds
 
@@ -119,15 +125,20 @@ const Bulb = ({ id }: { id: string }) => {
   };
 
   const changeColor = (color: string) => {
-    const red = color[1] + color[2];
-    const green = color[3] + color[4];
-    const blue = color[5] + color[6];
+    const r = parseInt(color.slice(1, 3), 16);
+    const g = parseInt(color.slice(3, 5), 16);
+    const b = parseInt(color.slice(5, 7), 16);
+
+    setRed(r);
+    setGreen(g);
+    setBlue(b);
+    setHexColor(color.toLowerCase());
 
     let newColor = {
       ...bulb,
-      red: parseInt(red, 16),
-      green: parseInt(green, 16),
-      blue: parseInt(blue, 16),
+      red: r,
+      green: g,
+      blue: b,
       dimming: bulb.dimming,
       temperature: 0,
     };
@@ -146,10 +157,7 @@ const Bulb = ({ id }: { id: string }) => {
       changeTemperature(temperature);
     } else {
       setColorType("RGB");
-      changeColor("#FFFFFF");
-      setRed(255);
-      setGreen(255);
-      setBlue(255);
+      changeColor("#ffffff");
     }
   };
 
@@ -193,10 +201,7 @@ const Bulb = ({ id }: { id: string }) => {
                 <div className="color-wheel-container">
                   <Wheel
                     color={hexToHsva(hexColor)}
-                    onChange={(color) => {
-                      setHexColor(color.hex);
-                      changeColor(color.hex);
-                    }}
+                    onChange={(color) => changeColor(color.hex)}
                     width={150}
                     height={150}
                   />
@@ -205,9 +210,24 @@ const Bulb = ({ id }: { id: string }) => {
                       <input
                         className="input is-small has-text-centered"
                         type="text"
-                        value={hexColor}
-                        readOnly
-                        style={{ 
+                        value={hexInputText}
+                        onChange={(e) => {
+                          let value = e.target.value;
+                          if (value && !value.startsWith("#")) {
+                            value = `#${value}`;
+                          }
+                          setHexInputText(value);
+                          if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+                            changeColor(value);
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!/^#[0-9a-fA-F]{6}$/.test(hexInputText)) {
+                            setHexInputText(hexColor);
+                          }
+                        }}
+                        maxLength={7}
+                        style={{
                           backgroundColor: hexColor,
                           color: red + green + blue > 384 ? '#000' : '#fff',
                           border: `2px solid ${red + green + blue > 384 ? '#000' : '#fff'}`
