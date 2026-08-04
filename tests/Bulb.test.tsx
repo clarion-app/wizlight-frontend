@@ -2,10 +2,25 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-const mockStop = vi.fn();
-const mockListen = vi.fn().mockReturnValue({ stop: mockStop });
-const mockPrivate = vi.fn().mockReturnValue({ listen: mockListen });
-const mockChannel = vi.fn().mockReturnValue({ listen: mockListen });
+// This double models the real laravel-echo Channel surface and nothing more:
+// listen(event, callback) returns the channel, and unsubscription is
+// stopListening(event, callback?). There is deliberately no stop() — the
+// previous version of this file invented one, which is why four broken cleanup
+// handlers shipped and only surfaced as a TypeError in the browser.
+const mockListen = vi.fn(function (this: any) {
+  return this;
+});
+const mockStopListening = vi.fn(function (this: any) {
+  return this;
+});
+
+const makeChannelDouble = () => ({
+  listen: mockListen,
+  stopListening: mockStopListening,
+});
+
+const mockPrivate = vi.fn(makeChannelDouble);
+const mockChannel = vi.fn(makeChannelDouble);
 
 // Mock the index module
 vi.mock('../src', () => ({
@@ -120,5 +135,53 @@ describe('Bulb - Private Channels', () => {
     // which serializes to 'private-clarion-app-wizlights'
     // Frontend Echo.private('clarion-app-wizlights') subscribes to the same channel
     expect(mockPrivate).toHaveBeenCalledWith('clarion-app-wizlights');
+  });
+
+  it('subscribes to both the status and the command-failed event', () => {
+    render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-1']}>
+        <Bulb id="bulb-1" />
+      </MemoryRouter>,
+    );
+
+    const events = mockListen.mock.calls.map((call) => call[0]);
+    expect(events).toContain('.ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent');
+    expect(events).toContain('.ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent');
+  });
+
+  it('unsubscribes on unmount using the real Echo API, passing the callback', () => {
+    // The regression this guards: cleanup called handler.stop(), which does not
+    // exist on an Echo channel, so unmounting threw
+    // "TypeError: statusHandler.stop is not a function".
+    const { unmount } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-1']}>
+        <Bulb id="bulb-1" />
+      </MemoryRouter>,
+    );
+
+    expect(mockStopListening).not.toHaveBeenCalled();
+
+    unmount();
+
+    const stopped = mockStopListening.mock.calls;
+    expect(stopped.map((call) => call[0])).toEqual(
+      expect.arrayContaining([
+        '.ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent',
+        '.ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent',
+      ]),
+    );
+
+    // Every Bulb and Room shares this one channel. Dropping the callback
+    // argument would remove the other components' listeners too.
+    for (const call of stopped) {
+      expect(typeof call[1]).toBe('function');
+    }
+
+    // And the callback handed to stopListening must be the one that was
+    // registered, or the listener stays attached and leaks.
+    const listened = new Map(mockListen.mock.calls.map((call) => [call[0], call[1]]));
+    for (const [event, callback] of stopped) {
+      expect(callback).toBe(listened.get(event));
+    }
   });
 });

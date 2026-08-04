@@ -14,6 +14,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TemperatureSlide } from "./TemperatureSlide";
 import { WindowWS } from "@clarion-app/types";
+import {
+  WIZLIGHT_CHANNEL,
+  BULB_STATUS_EVENT,
+  BULB_COMMAND_FAILED_EVENT,
+} from "./channels";
 
 type RoomColorType = "Temperature" | "RGB";
 
@@ -99,26 +104,29 @@ const Room = () => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    const statusHandler = win.Echo.private("clarion-app-wizlights").listen(
-      ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
-      (message: any) => {
-        void refetchRooms();
-        void refetchBulbs();
-      }
-    );
+    const channel = win.Echo.private(WIZLIGHT_CHANNEL);
 
-    // FR-004b: listen for command failure events and refetch to sync state
-    const failedHandler = win.Echo.private("clarion-app-wizlights").listen(
-      ".ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent",
-      (message: any) => {
-        void refetchRooms();
-        void refetchBulbs();
-      }
-    );
+    const onStatus = () => {
+      void refetchRooms();
+      void refetchBulbs();
+    };
 
+    // FR-004b: a failed command means the optimistic state is wrong; refetch.
+    const onCommandFailed = () => {
+      void refetchRooms();
+      void refetchBulbs();
+    };
+
+    channel.listen(BULB_STATUS_EVENT, onStatus);
+    channel.listen(BULB_COMMAND_FAILED_EVENT, onCommandFailed);
+
+    // Echo channels expose stopListening(event, callback) — there is no stop().
+    // The callback argument is required, not optional politeness: every Bulb and
+    // every Room shares this one channel, so a bare stopListening(event) would
+    // tear down the other components' listeners too.
     return () => {
-      statusHandler.stop();
-      failedHandler.stop();
+      channel.stopListening(BULB_STATUS_EVENT, onStatus);
+      channel.stopListening(BULB_COMMAND_FAILED_EVENT, onCommandFailed);
     };
   }, []);
 

@@ -9,6 +9,11 @@ import {
 } from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
 import { WindowWS } from "@clarion-app/types";
+import {
+  WIZLIGHT_CHANNEL,
+  BULB_STATUS_EVENT,
+  BULB_COMMAND_FAILED_EVENT,
+} from "./channels";
 
 interface BulbPropsType extends BulbStateType {}
 
@@ -40,9 +45,8 @@ const Bulb = ({ id }: { id: string }) => {
 
   // FR-004b: listen for command failure events and revert optimistic state
   useEffect(() => {
-    const handler = win.Echo.private("clarion-app-wizlights").listen(
-      ".ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent",
-      (message: any) => {
+    const channel = win.Echo.private(WIZLIGHT_CHANNEL);
+    const onCommandFailed = (message: any) => {
         if (message.bulbId !== id) {
           return;
         }
@@ -62,10 +66,16 @@ const Bulb = ({ id }: { id: string }) => {
         setCommandFailed(true);
         // Clear the error indicator after 5 seconds
         setTimeout(() => setCommandFailed(false), 5000);
-      }
-    );
+    };
+
+    channel.listen(BULB_COMMAND_FAILED_EVENT, onCommandFailed);
+
+    // Echo channels expose stopListening(event, callback) — there is no stop().
+    // The callback argument is required, not optional politeness: every Bulb and
+    // every Room shares this one channel, so a bare stopListening(event) would
+    // tear down the other components' listeners too.
     return () => {
-      handler.stop();
+      channel.stopListening(BULB_COMMAND_FAILED_EVENT, onCommandFailed);
     };
   }, [id]);
 
@@ -111,9 +121,8 @@ const Bulb = ({ id }: { id: string }) => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    const handler = win.Echo.private("clarion-app-wizlights").listen(
-      ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
-      (message: any) => {
+    const channel = win.Echo.private(WIZLIGHT_CHANNEL);
+    const onStatus = (message: any) => {
         if (message.bulb.id !== id) {
           return;
         }
@@ -133,10 +142,12 @@ const Bulb = ({ id }: { id: string }) => {
         );
         // Clear any pending command-failed state when we get a fresh status update
         setCommandFailed(false);
-      }
-    );
+    };
+
+    channel.listen(BULB_STATUS_EVENT, onStatus);
+
     return () => {
-      handler.stop();
+      channel.stopListening(BULB_STATUS_EVENT, onStatus);
     };
   }, [id]);
 
