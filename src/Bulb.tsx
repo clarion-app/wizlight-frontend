@@ -79,7 +79,7 @@ const Bulb = ({ id }: { id: string }) => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    win.Echo.channel("clarion-app-wizlights").listen(
+    win.Echo.private("clarion-app-wizlights").listen(
       ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
       (message: any) => {
         if (message.bulb.id !== id) {

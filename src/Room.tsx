@@ -10,9 +10,10 @@ import { BulbStateType, RoomType } from "./types";
 import Bulb from "./Bulb";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TemperatureSlide } from "./TemperatureSlide";
+import { WindowWS } from "@clarion-app/types";
 
 type RoomColorType = "Temperature" | "RGB";
 
@@ -25,6 +26,7 @@ const Room = () => {
     isLoading: roomsLoading,
     isSuccess: roomsSuccess,
     isError: roomsIsError,
+    refetch: refetchRooms,
   } = useGetRoomsQuery(null);
   const {
     data: bulbs,
@@ -32,6 +34,7 @@ const Room = () => {
     isLoading: bulbsLoading,
     isSuccess: bulbsSuccess,
     isError: bulbsIsError,
+    refetch: refetchBulbs,
   } = useGetBulbsQuery(null);
   const [
     setBulb,
@@ -75,7 +78,7 @@ const Room = () => {
     setHexInputText(hexColor);
   }, [hexColor]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (room) {
       setRed(room.red || 0);
       setGreen(room.green || 0);
@@ -92,6 +95,18 @@ const Room = () => {
       setColorType(!room.red && !room.green && !room.blue ? "Temperature" : "RGB");
     }
   }, [room]);
+
+  const win = window as unknown as WindowWS;
+
+  useEffect(() => {
+    win.Echo.private("clarion-app-wizlights").listen(
+      ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
+      (message: any) => {
+        void refetchRooms();
+        void refetchBulbs();
+      }
+    );
+  }, []);
 
   if (roomsLoading || bulbsLoading) {
     return <div>Loading...</div>;

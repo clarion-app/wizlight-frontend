@@ -4,7 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "vitest run",
     "build": "rm -rf dist && tsc && cp src/style.css dist/style.css"
   },
   "repository": {
@@ -15,7 +15,7 @@
   "license": "MIT",
   "dependencies": {
     "@babel/runtime": "^7.24.8",
-    "@clarion-app/frontend-base": "^1.0.0",
+    "@clarion-app/frontend-base": "file:../frontend-base",
     "@clarion-app/types": "^2.0.0",
     "@reduxjs/toolkit": "^2.2.6",
     "@uiw/react-color-wheel": "^2.3.0",
@@ -25,7 +25,12 @@
     "typescript": "^5.4.5"
   },
   "devDependencies": {
-    "@types/react": "^18.3.2"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^14.3.1",
+    "@types/react": "^18.3.2",
+    "jsdom": "^29.0.1",
+    "react-dom": "^18.3.1",
+    "vitest": "^4.1.2"
   },
   "customFields": {
     "clarion": {
