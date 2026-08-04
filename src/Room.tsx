@@ -99,13 +99,27 @@ const Room = () => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    win.Echo.private("clarion-app-wizlights").listen(
+    const statusHandler = win.Echo.private("clarion-app-wizlights").listen(
       ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
       (message: any) => {
         void refetchRooms();
         void refetchBulbs();
       }
     );
+
+    // FR-004b: listen for command failure events and refetch to sync state
+    const failedHandler = win.Echo.private("clarion-app-wizlights").listen(
+      ".ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent",
+      (message: any) => {
+        void refetchRooms();
+        void refetchBulbs();
+      }
+    );
+
+    return () => {
+      statusHandler.stop();
+      failedHandler.stop();
+    };
   }, []);
 
   if (roomsLoading || bulbsLoading) {

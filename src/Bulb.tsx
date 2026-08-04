@@ -36,6 +36,38 @@ const Bulb = ({ id }: { id: string }) => {
   );
   const [name, setName] = useState<string>(bulb.name || "");
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
+  const [commandFailed, setCommandFailed] = useState<boolean>(false);
+
+  // FR-004b: listen for command failure events and revert optimistic state
+  useEffect(() => {
+    const handler = win.Echo.private("clarion-app-wizlights").listen(
+      ".ClarionApp\\WizlightBackend\\Events\\BulbCommandFailedEvent",
+      (message: any) => {
+        if (message.bulbId !== id) {
+          return;
+        }
+        // Revert to last-known actual state from the event payload
+        const ls = message.lastKnownState;
+        if (ls) {
+          setTemperature(ls.temperature ?? 2700);
+          setRed(ls.red ?? 0);
+          setGreen(ls.green ?? 0);
+          setBlue(ls.blue ?? 0);
+          setHexColor(
+            `#${(ls.red ?? 0).toString(16).padStart(2, "0")}${(ls.green ?? 0)
+              .toString(16)
+              .padStart(2, "0")}${(ls.blue ?? 0).toString(16).padStart(2, "0")}`
+          );
+        }
+        setCommandFailed(true);
+        // Clear the error indicator after 5 seconds
+        setTimeout(() => setCommandFailed(false), 5000);
+      }
+    );
+    return () => {
+      handler.stop();
+    };
+  }, [id]);
 
   const hexValue = `#${red.toString(16).padStart(2, "0")}${green
     .toString(16)
@@ -79,7 +111,7 @@ const Bulb = ({ id }: { id: string }) => {
   const win = window as unknown as WindowWS;
 
   useEffect(() => {
-    win.Echo.private("clarion-app-wizlights").listen(
+    const handler = win.Echo.private("clarion-app-wizlights").listen(
       ".ClarionApp\\WizlightBackend\\Events\\BulbStatusEvent",
       (message: any) => {
         if (message.bulb.id !== id) {
@@ -99,9 +131,14 @@ const Bulb = ({ id }: { id: string }) => {
             .toString(16)
             .padStart(2, "0")}`
         );
+        // Clear any pending command-failed state when we get a fresh status update
+        setCommandFailed(false);
       }
     );
-  }, []);
+    return () => {
+      handler.stop();
+    };
+  }, [id]);
 
   /*
   useEffect(() => {
@@ -328,6 +365,12 @@ const Bulb = ({ id }: { id: string }) => {
               {isError && (
                 <div className="notification is-danger is-light mt-3">
                   ⚠️ Failed to update bulb
+                </div>
+              )}
+
+              {commandFailed && (
+                <div className="notification is-danger is-light mt-3">
+                  ⚠️ Command failed — reverted to last known state
                 </div>
               )}
 

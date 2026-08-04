@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 
-const mockListen = vi.fn().mockReturnThis();
+const mockStop = vi.fn();
+const mockListen = vi.fn().mockReturnValue({ stop: mockStop });
 const mockPrivate = vi.fn().mockReturnValue({ listen: mockListen });
 const mockChannel = vi.fn().mockReturnValue({ listen: mockListen });
 
