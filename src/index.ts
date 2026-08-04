@@ -6,4 +6,4 @@ import { wizlightApi, invalidateTag } from "./wizlightApi";
 export { backend, updateFrontend } from './config';
 
 export { Bulbs, Room, Rooms, wizlightApi };
-export { useGetBulbsQuery, useGetBulbQuery, useDeleteBulbMutation, useSetBulbMutation } from "./wizlightApi";
+export { useGetBulbsQuery, useDeleteBulbMutation, useSetBulbMutation } from "./wizlightApi";

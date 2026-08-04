@@ -13,10 +13,6 @@ export const wizlightApi = (() => {
                 query: () => 'bulb',
                 providesTags: ['WizlightBulb'],
             }),
-            getBulb: builder.query({
-                query: (id) => `bulb/${id}`,
-                providesTags: ['WizlightBulb'],
-            }),
             deleteBulb: builder.mutation({
                 query: (id) => ({
                     url: `bulb/${id}`,
@@ -71,8 +67,11 @@ export const wizlightApi = (() => {
                 onQueryStarted: (bulb, { dispatch }) => {
                     try {
                         dispatch(
-                            api.util.updateQueryData('getBulb', bulb.id, (draft) => {
-                                Object.assign(draft, bulb);
+                            api.util.updateQueryData('getBulbs', null, (draft) => {
+                                const index = draft.findIndex((b: any) => b.id === bulb.id);
+                                if (index !== -1) {
+                                    Object.assign(draft[index], bulb);
+                                }
                             })
                         );
                     } catch {
@@ -91,7 +90,6 @@ export const invalidateTag = () => {
 
 export const {
     useGetBulbsQuery,
-    useGetBulbQuery,
     useDeleteBulbMutation,
     useSetBulbMutation,
     useGetRoomsQuery,
