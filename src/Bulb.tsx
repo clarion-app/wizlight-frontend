@@ -6,8 +6,11 @@ import {
   useGetBulbsQuery,
   useSetBulbMutation,
   useDeleteBulbMutation,
+  useGetScenesQuery,
 } from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
+import ScenePicker from "./ScenePicker";
+import { resolveSceneName } from "./scenes";
 import { WindowWS } from "@clarion-app/types";
 import {
   WIZLIGHT_CHANNEL,
@@ -42,6 +45,8 @@ const Bulb = ({ id }: { id: string }) => {
   const [name, setName] = useState<string>(bulb.name || "");
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [commandFailed, setCommandFailed] = useState<boolean>(false);
+
+  const { data: scenes } = useGetScenesQuery();
 
   // FR-004b: listen for command failure events and revert optimistic state
   useEffect(() => {
@@ -363,9 +368,28 @@ const Bulb = ({ id }: { id: string }) => {
                   <p className="subtitle is-6 has-text-grey">
                     🕒 Last seen {last_seen_ago}
                   </p>
+                  {bulb.active_mode === 'scene' && bulb.scene_id && (
+                    <p className="subtitle is-6 has-text-info mt-1">
+                      🎬 {resolveSceneName(bulb.scene_id, scenes ?? [])}
+                    </p>
+                  )}
                 </>
               )}
 
+              <div className="field mt-4">
+                <ScenePicker
+                  capabilityClass={bulb.capability_class}
+                  currentSceneId={bulb.scene_id}
+                  onChange={(sceneId) => {
+                    setBulb({
+                      ...bulb,
+                      active_mode: 'scene',
+                      scene_id: sceneId,
+                      scene_speed: null,
+                    });
+                  }}
+                />
+              </div>
               <div className="field mt-4">
                 <div className="control">
                   <button

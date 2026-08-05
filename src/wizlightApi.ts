@@ -1,7 +1,7 @@
 import { createApi, TagDescription } from '@reduxjs/toolkit/query/react';
 import { createBaseQuery } from '@clarion-app/frontend-base';
 import { backend } from './config';
-import { BulbStateType } from './types';
+import { BulbStateType, SceneType } from './types';
 
 export const wizlightApi = (() => {
     const api = createApi({
@@ -59,6 +59,10 @@ export const wizlightApi = (() => {
                 }),
                 invalidatesTags: ['WizlightRoom'],  // Invalidate specific tag here
             }),
+            getScenes: builder.query<SceneType[], void>({
+                query: () => 'scene',
+                keepUnusedDataFor: 3600,
+            }),
             updateBulbLocally: builder.mutation({
                 queryFn: (bulb) => {
                     // Return a dummy result – this won't contact the backend
@@ -97,5 +101,6 @@ export const {
     useSetRoomMutation,
     useDeleteRoomMutation,
     useCreateRoomMutation,
+    useGetScenesQuery,
     useUpdateBulbLocallyMutation
 } = wizlightApi;

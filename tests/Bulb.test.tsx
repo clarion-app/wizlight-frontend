@@ -94,6 +94,46 @@ const unprobedBulb = {
   last_seen: makeLastSeen(5),
 };
 
+// Scene-mode bulb fixture (used by "active scene display" tests)
+const bulbInSceneMode = {
+  id: 'bulb-scene-mode',
+  name: 'Scene Bulb',
+  state: 1,
+  dimming: 80,
+  red: 255,
+  green: 0,
+  blue: 0,
+  temperature: 2700,
+  capability_class: 'full_colour',
+  ip: '192.168.1.20',
+  mac: 'aa:bb:cc:dd:ee:20',
+  room_id: null,
+  signal: '-55',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'scene',
+  scene_id: 1,
+  scene_speed: null,
+  white_warm: null,
+  white_cool: null,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 20,
+    bulb_id: 20,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
 // Mock RTK Query hooks to return data synchronously (avoids loading state crash)
 vi.mock('../src/wizlightApi', () => ({
   useGetBulbsQuery: () => ({
@@ -127,12 +167,20 @@ vi.mock('../src/wizlightApi', () => ({
       tunableWhiteBulb,
       fullColourBulb,
       unprobedBulb,
+      bulbInSceneMode,
     ],
     isLoading: false,
     refetch: vi.fn(),
   }),
   useSetBulbMutation: () => [vi.fn(), { isLoading: false, isSuccess: false, isError: false }],
   useDeleteBulbMutation: () => [vi.fn(), { isLoading: false }],
+  useGetScenesQuery: () => ({
+    data: [
+      { id: 1, name: 'Ocean', animated: true, classes: ['full_colour'] },
+      { id: 9, name: 'Wake-up', animated: true, classes: ['full_colour', 'tunable_white', 'dim_only'] },
+    ],
+    isLoading: false,
+  }),
 }));
 
 // Mock @clarion-app/frontend-base
@@ -324,5 +372,34 @@ describe('Bulb - capability-gated controls', () => {
     expectBrightnessControl(container);
     expect(hasColourWheel(container)).toBe(false);
     expect(hasWarmthSlider(container)).toBe(false);
+  });
+});
+
+describe('Bulb - active scene display', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (window as any).Echo = {
+      private: vi.fn(() => ({
+        listen: vi.fn(function (this: any) { return this; }),
+        stopListening: vi.fn(function (this: any) { return this; }),
+      })),
+      channel: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  it('renders the active scene name prominently when active_mode is scene and scene_id is set', () => {
+    // Bulb with active_mode === 'scene' and scene_id set should render the scene name.
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-scene-mode']}>
+        <Bulb id="bulb-scene-mode" />
+      </MemoryRouter>,
+    );
+
+    // The component should render the scene name "Ocean" prominently.
+    expect(container.textContent).toContain('Ocean');
   });
 });
