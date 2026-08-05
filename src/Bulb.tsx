@@ -10,6 +10,7 @@ import {
 } from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
 import ScenePicker from "./ScenePicker";
+import SpeedSlider from "./SpeedSlider";
 import ModeSwitch from "./ModeSwitch";
 import { resolveSceneName } from "./scenes";
 import { WindowWS } from "@clarion-app/types";
@@ -221,6 +222,10 @@ const Bulb = ({ id }: { id: string }) => {
   const showColourWheel = deviceSupportsColour && effectiveMode === 'rgb';
   const showWarmthSlider = deviceSupportsWarmth && effectiveMode === 'warmth';
   const showScenePicker = effectiveMode === 'scene';
+  const showSpeedSlider = effectiveMode === 'scene' && bulb.scene_id != null && (() => {
+    const scene = scenes?.find((s) => s.id === bulb.scene_id);
+    return scene?.animated ?? false;
+  })();
 
   // Label for the mode tag shown in the header.
   const modeLabel = (() => {
@@ -404,6 +409,17 @@ const Bulb = ({ id }: { id: string }) => {
                     }}
                   />
                 </div>
+              )}
+              {showSpeedSlider && (
+                <SpeedSlider
+                  sceneId={bulb.scene_id}
+                  sceneSpeed={bulb.scene_speed}
+                  animated={true}
+                  onChange={(speed) => {
+                    setBulb({ ...bulb, scene_speed: speed });
+                  }}
+                  scenes={scenes ?? []}
+                />
               )}
               <div className="field mt-4">
                 <div className="control">
