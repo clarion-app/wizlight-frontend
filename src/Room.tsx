@@ -3,6 +3,7 @@ import {
   useDeleteRoomMutation,
   useGetBulbsQuery,
   useGetRoomsQuery,
+  useGetScenesQuery,
   useSetBulbMutation,
   useSetRoomMutation,
 } from "./wizlightApi";
@@ -10,7 +11,7 @@ import { BulbStateType, RoomType } from "./types";
 import Bulb from "./Bulb";
 import Wheel from "@uiw/react-color-wheel";
 import { hexToHsva } from "@uiw/color-convert";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { TemperatureSlide } from "./TemperatureSlide";
 import { WindowWS } from "@clarion-app/types";
@@ -19,6 +20,8 @@ import {
   BULB_STATUS_EVENT,
   BULB_COMMAND_FAILED_EVENT,
 } from "./channels";
+import { sortScenesByName } from "./scenes";
+import type { SceneType } from "./types";
 
 type RoomColorType = "Temperature" | "RGB";
 
@@ -51,6 +54,7 @@ const Room = () => {
   ] = useSetBulbMutation();
   const [setRoom] = useSetRoomMutation();
   const [deleteRoom] = useDeleteRoomMutation();
+  const { data: allScenes = [] } = useGetScenesQuery();
 
   const room: RoomType = rooms?.find((room: RoomType) => room.name === name);
 
@@ -68,6 +72,9 @@ const Room = () => {
   const [colorType, setColorType] = useState<RoomColorType>(
     !red && !green && !blue ? "Temperature" : "RGB"
   );
+
+  // Scene applied message: "Applied to N of M bulbs" from capability_skips
+  const [appliedMessage, setAppliedMessage] = useState<string | null>(null);
 
   // Hex color for Wheel
   const hexValue = `#${red.toString(16).padStart(2, "0")}${green
@@ -142,6 +149,21 @@ const Room = () => {
   const unassignedBulbs = bulbs.filter(
     (b: BulbStateType) => b.room_id === null
   );
+
+  // Union of member-supported scenes (T060)
+  // Collect all capability_class values from room bulbs, then filter the
+  // catalogue to scenes that support at least one of those classes.
+  const unionScenes: SceneType[] = useMemo(() => {
+    if (!allScenes.length || !roomBulbs.length) return [];
+    const classes = new Set<string>();
+    roomBulbs.forEach((b: BulbStateType) => {
+      if (b.capability_class) classes.add(b.capability_class);
+    });
+    const union = allScenes.filter((s: SceneType) =>
+      s.classes.some((c) => classes.has(c))
+    );
+    return sortScenesByName(union);
+  }, [allScenes, roomBulbs]);
 
   const handleAssign = (bulb: BulbStateType) => {
     setBulb({ ...bulb, room_id: room.id });
@@ -234,6 +256,43 @@ const Room = () => {
         },
       });
     }
+  };
+
+  const handleRoomSceneChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const sceneId = parseInt(e.target.value, 10);
+    if (isNaN(sceneId) || sceneId <= 0 || !room) return;
+
+    setAppliedMessage(null);
+    const newValue = {
+      ...room,
+      name: roomName,
+      red,
+      green,
+      blue,
+      dimming,
+      state: roomState,
+      active_mode: 'scene' as const,
+      scene_id: sceneId,
+      scene_speed: room.scene_speed ?? null,
+    };
+    setRoom({ id: room.id, state: newValue }).then((result) => {
+      // Compute "Applied to N of M bulbs" from capability_skips
+      const data = 'data' in result ? result.data : result;
+      const skips = (data as any)?.capability_skips ?? [];
+      if (skips.length > 0 && roomBulbs.length > 0) {
+        const skippedIds = new Set(
+          skips
+            .filter((s: any) => s.field === 'scene_id')
+            .map((s: any) => s.bulb_id)
+        );
+        const applied = roomBulbs.length - skippedIds.size;
+        setAppliedMessage(`Applied to ${applied} of ${roomBulbs.length} bulbs`);
+      } else {
+        setAppliedMessage(null);
+      }
+    }).catch(() => {
+      setAppliedMessage(null);
+    });
   };
 
   const handleRoomSave = () => {
@@ -429,6 +488,32 @@ const Room = () => {
                         </div>
                       </div>
                     </div>
+
+                    {/* Room-level scene picker (T060) — union of member-supported scenes */}
+                    {unionScenes.length > 0 && (
+                      <div className="field mt-4">
+                        <label className="label">🎬 Scene</label>
+                        <div className="control">
+                          <div className="select is-fullwidth">
+                            <select
+                              data-testid="room-scene-picker"
+                              value={room?.scene_id ?? 0}
+                              onChange={handleRoomSceneChange}
+                            >
+                              <option value={0}>— Select scene —</option>
+                              {unionScenes.map((scene) => (
+                                <option key={scene.id} value={scene.id}>
+                                  {scene.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                        {appliedMessage && (
+                          <p className="help is-warning mt-2">{appliedMessage}</p>
+                        )}
+                      </div>
+                    )}
 
                     <div className="field mt-4">
                       <div className="control">
