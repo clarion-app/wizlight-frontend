@@ -12,6 +12,7 @@ import { TemperatureSlide } from "./TemperatureSlide";
 import ScenePicker from "./ScenePicker";
 import SpeedSlider from "./SpeedSlider";
 import ModeSwitch from "./ModeSwitch";
+import WhiteChannels from "./WhiteChannels";
 import { resolveSceneName } from "./scenes";
 import { WindowWS } from "@clarion-app/types";
 import {
@@ -221,6 +222,7 @@ const Bulb = ({ id }: { id: string }) => {
   // belonging to the current mode.
   const showColourWheel = deviceSupportsColour && effectiveMode === 'rgb';
   const showWarmthSlider = deviceSupportsWarmth && effectiveMode === 'warmth';
+  const showWhiteChannels = deviceSupportsColour && effectiveMode === 'white_channels';
   const showScenePicker = effectiveMode === 'scene';
   const showSpeedSlider = effectiveMode === 'scene' && bulb.scene_id != null && (() => {
     const scene = scenes?.find((s) => s.id === bulb.scene_id);
@@ -419,6 +421,19 @@ const Bulb = ({ id }: { id: string }) => {
                     setBulb({ ...bulb, scene_speed: speed });
                   }}
                   scenes={scenes ?? []}
+                />
+              )}
+              {showWhiteChannels && (
+                <WhiteChannels
+                  whiteWarm={bulb.white_warm ?? 0}
+                  whiteCool={bulb.white_cool ?? 0}
+                  onChange={(values) => {
+                    setBulb({
+                      ...bulb,
+                      active_mode: 'white_channels',
+                      ...values,
+                    });
+                  }}
                 />
               )}
               <div className="field mt-4">

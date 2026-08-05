@@ -295,6 +295,85 @@ const bulbInSceneModeForVisibility = {
   },
 };
 
+// US4: white channel visibility fixtures — one per capability_class, all in
+// white_channels mode so the gating decision is purely on capability_class.
+const bulbWhiteChannelsFullColour = {
+  id: 'bulb-white-channels-full-colour',
+  name: 'White Channels Full Colour',
+  state: 1,
+  dimming: 50,
+  red: 0,
+  green: 0,
+  blue: 0,
+  temperature: 0,
+  capability_class: 'full_colour',
+  ip: '192.168.1.40',
+  mac: 'aa:bb:cc:dd:ee:40',
+  room_id: null,
+  signal: '-50',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'white_channels',
+  scene_id: null,
+  scene_speed: null,
+  white_warm: 200,
+  white_cool: 40,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 40,
+    bulb_id: 40,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
+const bulbWhiteChannelsTunableWhite = {
+  ...bulbWhiteChannelsFullColour,
+  id: 'bulb-white-channels-tunable-white',
+  name: 'White Channels Tunable White',
+  capability_class: 'tunable_white',
+  ip: '192.168.1.41',
+  mac: 'aa:bb:cc:dd:ee:41',
+  white_warm: null,
+  white_cool: null,
+  last_seen: {
+    id: 41,
+    bulb_id: 41,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
+const bulbWhiteChannelsDimOnly = {
+  ...bulbWhiteChannelsFullColour,
+  id: 'bulb-white-channels-dim-only',
+  name: 'White Channels Dim Only',
+  capability_class: 'dim_only',
+  ip: '192.168.1.42',
+  mac: 'aa:bb:cc:dd:ee:42',
+  white_warm: null,
+  white_cool: null,
+  last_seen: {
+    id: 42,
+    bulb_id: 42,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
 // Mock RTK Query hooks to return data synchronously (avoids loading state crash)
 vi.mock('../src/wizlightApi', () => ({
   useGetBulbsQuery: () => ({
@@ -333,6 +412,9 @@ vi.mock('../src/wizlightApi', () => ({
       bulbInWarmthMode,
       bulbInWhiteChannelsMode,
       bulbInSceneModeForVisibility,
+      bulbWhiteChannelsFullColour,
+      bulbWhiteChannelsTunableWhite,
+      bulbWhiteChannelsDimOnly,
     ],
     isLoading: false,
     refetch: vi.fn(),
@@ -599,6 +681,9 @@ describe('Bulb - mode-gated control visibility', () => {
   const hasScenePicker = (container: HTMLElement) =>
     container.querySelector('select, [role="listbox"]') !== null;
 
+  const hasWhiteChannels = (container: HTMLElement) =>
+    container.querySelector('[data-testid="white-channels"]') !== null;
+
   it('rgb mode: colour wheel active, warmth slider and scene controls visually inactive', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-rgb-mode']}>
@@ -654,5 +739,46 @@ describe('Bulb - mode-gated control visibility', () => {
     // Colour wheel, warmth slider, and white-channel controls should be visually inactive.
     expect(hasColourWheel(container)).toBe(false);
     expect(hasWarmthSlider(container)).toBe(false);
+  });
+
+  // ------------------------------------------------------------------
+  // US4: white channel control visibility based on capability_class
+  // ------------------------------------------------------------------
+
+  it('white_channels on full_colour: white channel controls present', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-white-channels-full-colour']}>
+        <Bulb id="bulb-white-channels-full-colour" />
+      </MemoryRouter>,
+    );
+
+    // White channel controls should be present for full_colour devices in white_channels mode.
+    expect(hasWhiteChannels(container)).toBe(true);
+    // Colour wheel, warmth slider, and scene controls should be visually inactive.
+    expect(hasColourWheel(container)).toBe(false);
+    expect(hasWarmthSlider(container)).toBe(false);
+    expect(hasScenePicker(container)).toBe(false);
+  });
+
+  it('white_channels on tunable_white: white channel controls absent', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-white-channels-tunable-white']}>
+        <Bulb id="bulb-white-channels-tunable-white" />
+      </MemoryRouter>,
+    );
+
+    // White channel controls must NOT be present for tunable_white devices.
+    expect(hasWhiteChannels(container)).toBe(false);
+  });
+
+  it('white_channels on dim_only: white channel controls absent', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-white-channels-dim-only']}>
+        <Bulb id="bulb-white-channels-dim-only" />
+      </MemoryRouter>,
+    );
+
+    // White channel controls must NOT be present for dim_only devices.
+    expect(hasWhiteChannels(container)).toBe(false);
   });
 });
