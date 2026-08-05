@@ -72,6 +72,7 @@ const tunableWhiteBulb = {
   id: 'bulb-tunable-white',
   name: 'Tunable White Bulb',
   capability_class: 'tunable_white',
+  active_mode: 'warmth',
   mac: 'aa:bb:cc:dd:ee:02',
   last_seen: makeLastSeen(3),
 };
@@ -81,6 +82,7 @@ const fullColourBulb = {
   id: 'bulb-full-colour',
   name: 'Full Colour Bulb',
   capability_class: 'full_colour',
+  active_mode: 'rgb',
   mac: 'aa:bb:cc:dd:ee:03',
   last_seen: makeLastSeen(4),
 };
@@ -134,6 +136,165 @@ const bulbInSceneMode = {
   },
 };
 
+// Mode-gated visibility fixtures — one full_colour bulb per active_mode value.
+// Each fixture carries active_mode set to exactly one of the four modes so the
+// Bulb component can gate controls belonging to the other three modes.
+const bulbInRgbMode = {
+  id: 'bulb-rgb-mode',
+  name: 'RGB Mode Bulb',
+  state: 1,
+  dimming: 70,
+  red: 200,
+  green: 50,
+  blue: 100,
+  temperature: 2700,
+  capability_class: 'full_colour',
+  ip: '192.168.1.30',
+  mac: 'aa:bb:cc:dd:ee:30',
+  room_id: null,
+  signal: '-50',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'rgb',
+  scene_id: null,
+  scene_speed: null,
+  white_warm: null,
+  white_cool: null,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 30,
+    bulb_id: 30,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
+const bulbInWarmthMode = {
+  id: 'bulb-warmth-mode',
+  name: 'Warmth Mode Bulb',
+  state: 1,
+  dimming: 60,
+  red: 0,
+  green: 0,
+  blue: 0,
+  temperature: 3200,
+  capability_class: 'full_colour',
+  ip: '192.168.1.31',
+  mac: 'aa:bb:cc:dd:ee:31',
+  room_id: null,
+  signal: '-50',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'warmth',
+  scene_id: null,
+  scene_speed: null,
+  white_warm: null,
+  white_cool: null,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 31,
+    bulb_id: 31,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
+const bulbInWhiteChannelsMode = {
+  id: 'bulb-white-channels-mode',
+  name: 'White Channels Mode Bulb',
+  state: 1,
+  dimming: 50,
+  red: 0,
+  green: 0,
+  blue: 0,
+  temperature: 0,
+  capability_class: 'full_colour',
+  ip: '192.168.1.32',
+  mac: 'aa:bb:cc:dd:ee:32',
+  room_id: null,
+  signal: '-50',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'white_channels',
+  scene_id: null,
+  scene_speed: null,
+  white_warm: 180,
+  white_cool: 120,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 32,
+    bulb_id: 32,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
+const bulbInSceneModeForVisibility = {
+  id: 'bulb-scene-mode-visibility',
+  name: 'Scene Mode Visibility Bulb',
+  state: 1,
+  dimming: 80,
+  red: 255,
+  green: 0,
+  blue: 0,
+  temperature: 2700,
+  capability_class: 'full_colour',
+  ip: '192.168.1.33',
+  mac: 'aa:bb:cc:dd:ee:33',
+  room_id: null,
+  signal: '-55',
+  local_node_id: 'test-node',
+  group: '',
+  mode: '',
+  active_mode: 'scene',
+  scene_id: 1,
+  scene_speed: null,
+  white_warm: null,
+  white_cool: null,
+  head_ratio: null,
+  dual_head: null,
+  warmth_max_kelvin: 6500,
+  warmth_min_kelvin: 2200,
+  min_brightness_pct: 1,
+  wiz_group_id: null,
+  wiz_room_id: null,
+  last_seen: {
+    id: 33,
+    bulb_id: 33,
+    last_seen_at: new Date().toISOString(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    deleted_at: null,
+  },
+};
+
 // Mock RTK Query hooks to return data synchronously (avoids loading state crash)
 vi.mock('../src/wizlightApi', () => ({
   useGetBulbsQuery: () => ({
@@ -168,6 +329,10 @@ vi.mock('../src/wizlightApi', () => ({
       fullColourBulb,
       unprobedBulb,
       bulbInSceneMode,
+      bulbInRgbMode,
+      bulbInWarmthMode,
+      bulbInWhiteChannelsMode,
+      bulbInSceneModeForVisibility,
     ],
     isLoading: false,
     refetch: vi.fn(),
@@ -350,7 +515,7 @@ describe('Bulb - capability-gated controls', () => {
     expect(hasWarmthSlider(container)).toBe(true);
   });
 
-  it('full_colour: shows brightness, warmth, and colour controls', () => {
+  it('full_colour: shows colour wheel in rgb mode (warmth gated by mode)', () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-full-colour']}>
         <Bulb id="bulb-full-colour" />
@@ -359,7 +524,9 @@ describe('Bulb - capability-gated controls', () => {
 
     expectBrightnessControl(container);
     expect(hasColourWheel(container)).toBe(true);
-    expect(hasWarmthSlider(container)).toBe(true);
+    // Warmth slider is capability-supported but mode-gated (active_mode is 'rgb').
+    // Mode-gated visibility is verified by the "mode-gated control visibility" suite.
+    expect(hasWarmthSlider(container)).toBe(false);
   });
 
   it('capability_class null (unprobed): renders identically to dim_only — brightness only', () => {
@@ -401,5 +568,91 @@ describe('Bulb - active scene display', () => {
 
     // The component should render the scene name "Ocean" prominently.
     expect(container.textContent).toContain('Ocean');
+  });
+});
+
+describe('Bulb - mode-gated control visibility', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (window as any).Echo = {
+      private: vi.fn(() => ({
+        listen: vi.fn(function (this: any) { return this; }),
+        stopListening: vi.fn(function (this: any) { return this; }),
+      })),
+      channel: vi.fn(),
+    };
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  // Helpers to detect whether a control group is visually active.
+  // A control is "visually inactive" when it is either not rendered at all,
+  // or rendered with a dimmed/hidden/de-emphasized CSS class or style.
+  const hasColourWheel = (container: HTMLElement) =>
+    container.querySelector('.color-wheel-container') !== null;
+
+  const hasWarmthSlider = (container: HTMLElement) =>
+    container.querySelector('.temperature-container') !== null;
+
+  const hasScenePicker = (container: HTMLElement) =>
+    container.querySelector('select, [role="listbox"]') !== null;
+
+  it('rgb mode: colour wheel active, warmth slider and scene controls visually inactive', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-rgb-mode']}>
+        <Bulb id="bulb-rgb-mode" />
+      </MemoryRouter>,
+    );
+
+    // Colour wheel should be present and active for rgb mode.
+    expect(hasColourWheel(container)).toBe(true);
+    // Warmth slider and scene controls should be visually inactive.
+    expect(hasWarmthSlider(container)).toBe(false);
+    expect(hasScenePicker(container)).toBe(false);
+  });
+
+  it('warmth mode: warmth slider active, colour wheel and scene controls visually inactive', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-warmth-mode']}>
+        <Bulb id="bulb-warmth-mode" />
+      </MemoryRouter>,
+    );
+
+    // Warmth slider should be present and active for warmth mode.
+    expect(hasWarmthSlider(container)).toBe(true);
+    // Colour wheel and scene controls should be visually inactive.
+    expect(hasColourWheel(container)).toBe(false);
+    expect(hasScenePicker(container)).toBe(false);
+  });
+
+  it('white_channels mode: white channel controls active, colour/warmth/scene controls visually inactive', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-white-channels-mode']}>
+        <Bulb id="bulb-white-channels-mode" />
+      </MemoryRouter>,
+    );
+
+    // Colour wheel, warmth slider, and scene controls should be visually inactive
+    // when active_mode is white_channels. This will fail until the Bulb component
+    // gates controls by active_mode.
+    expect(hasColourWheel(container)).toBe(false);
+    expect(hasWarmthSlider(container)).toBe(false);
+    expect(hasScenePicker(container)).toBe(false);
+  });
+
+  it('scene mode: scene controls active, colour/warmth/white-channel controls visually inactive', () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/bulbs/bulb-scene-mode-visibility']}>
+        <Bulb id="bulb-scene-mode-visibility" />
+      </MemoryRouter>,
+    );
+
+    // Scene name should be rendered prominently.
+    expect(container.textContent).toContain('Ocean');
+    // Colour wheel, warmth slider, and white-channel controls should be visually inactive.
+    expect(hasColourWheel(container)).toBe(false);
+    expect(hasWarmthSlider(container)).toBe(false);
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "./wizlightApi";
 import { TemperatureSlide } from "./TemperatureSlide";
 import ScenePicker from "./ScenePicker";
+import ModeSwitch from "./ModeSwitch";
 import { resolveSceneName } from "./scenes";
 import { WindowWS } from "@clarion-app/types";
 import {
@@ -19,8 +20,6 @@ import {
 } from "./channels";
 
 interface BulbPropsType extends BulbStateType {}
-
-type BulbColorType = "Temperature" | "RGB";
 
 const Bulb = ({ id }: { id: string }) => {
   const {
@@ -39,9 +38,6 @@ const Bulb = ({ id }: { id: string }) => {
   const [green, setGreen] = useState<number>(bulb.green || 0);
   const [blue, setBlue] = useState<number>(bulb.blue || 0);
 
-  const [colorType, setColorType] = useState<BulbColorType>(
-    !red && !green && !blue ? "Temperature" : "RGB"
-  );
   const [name, setName] = useState<string>(bulb.name || "");
   const [isEditingName, setIsEditingName] = useState<boolean>(false);
   const [commandFailed, setCommandFailed] = useState<boolean>(false);
@@ -169,9 +165,7 @@ const Bulb = ({ id }: { id: string }) => {
       ...bulb,
       temperature: temperature,
       dimming: bulb.dimming,
-      red: 0,
-      green: 0,
-      blue: 0,
+      active_mode: 'warmth',
     };
 
     setBulb(newColor);
@@ -193,7 +187,7 @@ const Bulb = ({ id }: { id: string }) => {
       green: g,
       blue: b,
       dimming: bulb.dimming,
-      temperature: 0,
+      active_mode: 'rgb',
     };
 
     setBulb(newColor);
@@ -204,30 +198,53 @@ const Bulb = ({ id }: { id: string }) => {
     setIsEditingName(false);
   };
 
-  const switchRGBxTemp = () => {
-    if (colorType === "RGB") {
-      setColorType("Temperature");
-      changeTemperature(temperature);
-    } else {
-      setColorType("RGB");
-      changeColor("#ffffff");
-    }
-  };
+  // Resolve the effective active mode from the bulb.
+  // Legacy rows with active_mode === null are resolved client-side using the
+  // same rule the backend uses: red/green/blue all zero and temperature > 0
+  // means warmth; otherwise rgb.
+  const effectiveMode = bulb.active_mode ?? (
+    bulb.red === 0 && bulb.green === 0 && bulb.blue === 0 && bulb.temperature > 0
+      ? 'warmth'
+      : 'rgb'
+  );
 
   // Only render the controls this device actually supports. A `capability_class`
   // of `null` (not yet probed) falls through both gates and renders like
   // dim_only — brightness stays available unconditionally either way.
-  const showColourWheel = bulb.capability_class === "full_colour";
-  const showWarmthSlider =
+  const deviceSupportsColour = bulb.capability_class === "full_colour";
+  const deviceSupportsWarmth =
     bulb.capability_class === "full_colour" ||
     bulb.capability_class === "tunable_white";
+
+  // Gate controls by effective active mode: only show the control group
+  // belonging to the current mode.
+  const showColourWheel = deviceSupportsColour && effectiveMode === 'rgb';
+  const showWarmthSlider = deviceSupportsWarmth && effectiveMode === 'warmth';
+  const showScenePicker = effectiveMode === 'scene';
+
+  // Label for the mode tag shown in the header.
+  const modeLabel = (() => {
+    if (effectiveMode === 'rgb') return 'Colour';
+    if (effectiveMode === 'warmth') return `${temperature}K`;
+    if (effectiveMode === 'white_channels') return `${bulb.white_warm ?? 0}/${bulb.white_cool ?? 0}`;
+    if (effectiveMode === 'scene' && bulb.scene_id) return resolveSceneName(bulb.scene_id, scenes ?? []);
+    return effectiveMode ?? 'rgb';
+  })();
+
+  const modeTagClass = (() => {
+    if (effectiveMode === 'rgb') return 'is-primary';
+    if (effectiveMode === 'warmth') return 'is-warning';
+    if (effectiveMode === 'white_channels') return 'is-success';
+    if (effectiveMode === 'scene') return 'is-info';
+    return 'is-primary';
+  })();
 
   return (
     <div className="card">
       <header className="card-header">
         <div className="card-header-title">
-          <span className={`tag is-medium ${colorType === "RGB" ? "is-primary" : "is-warning"} mr-3`}>
-            {colorType}
+          <span className={`tag is-medium ${modeTagClass} mr-3`}>
+            {modeLabel}
           </span>
           <span className={`tag is-small ${bulb.state ? "is-success" : "is-light"} mr-2`}>
             {bulb.state ? "🔆 ON" : "⭕ OFF"}
@@ -236,15 +253,11 @@ const Bulb = ({ id }: { id: string }) => {
             {bulb.dimming}%
           </span>
           <div className="buttons">
-            {showColourWheel && showWarmthSlider && (
-              <button
-                className={`button is-small ${colorType === "RGB" ? "is-warning" : "is-info"}`}
-                onClick={() => switchRGBxTemp()}
-                title={`Switch to ${colorType === "RGB" ? "Temperature" : "RGB"} mode`}
-              >
-                {colorType === "RGB" ? "🌡️" : "🎨"} Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
-              </button>
-            )}
+            <ModeSwitch
+              capabilityClass={bulb.capability_class}
+              activeMode={effectiveMode}
+              onChange={(payload) => setBulb({ ...bulb, ...payload })}
+            />
             <button
               className="button is-small is-danger is-outlined" 
               onClick={() => deleteBulb(id)}
@@ -376,20 +389,22 @@ const Bulb = ({ id }: { id: string }) => {
                 </>
               )}
 
-              <div className="field mt-4">
-                <ScenePicker
-                  capabilityClass={bulb.capability_class}
-                  currentSceneId={bulb.scene_id}
-                  onChange={(sceneId) => {
-                    setBulb({
-                      ...bulb,
-                      active_mode: 'scene',
-                      scene_id: sceneId,
-                      scene_speed: null,
-                    });
-                  }}
-                />
-              </div>
+              {showScenePicker && (
+                <div className="field mt-4">
+                  <ScenePicker
+                    capabilityClass={bulb.capability_class}
+                    currentSceneId={bulb.scene_id}
+                    onChange={(sceneId) => {
+                      setBulb({
+                        ...bulb,
+                        active_mode: 'scene',
+                        scene_id: sceneId,
+                        scene_speed: null,
+                      });
+                    }}
+                  />
+                </div>
+              )}
               <div className="field mt-4">
                 <div className="control">
                   <button
