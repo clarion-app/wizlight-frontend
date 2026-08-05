@@ -137,6 +137,31 @@ const Room = () => {
     };
   }, []);
 
+  // Union of member-supported scenes (T060)
+  // Collect all capability_class values from room bulbs, then filter the
+  // catalogue to scenes that support at least one of those classes.
+  //
+  // This sits above the loading/error returns below on purpose: a hook placed
+  // after an early return is skipped entirely on the loading render and then
+  // appears once the queries resolve, which shifts every later hook's position
+  // and throws "change in the order of Hooks called by Room". It therefore
+  // derives its own member list from the raw query data rather than reading
+  // roomBulbs, which is only safe to compute after those returns.
+  const unionScenes: SceneType[] = useMemo(() => {
+    const memberBulbs = room
+      ? (bulbs ?? []).filter((b: BulbStateType) => b.room_id === room.id)
+      : [];
+    if (!allScenes.length || !memberBulbs.length) return [];
+    const classes = new Set<string>();
+    memberBulbs.forEach((b: BulbStateType) => {
+      if (b.capability_class) classes.add(b.capability_class);
+    });
+    const union = allScenes.filter((s: SceneType) =>
+      s.classes.some((c) => classes.has(c))
+    );
+    return sortScenesByName(union);
+  }, [allScenes, bulbs, room]);
+
   if (roomsLoading || bulbsLoading) {
     return <div>Loading...</div>;
   }
@@ -149,21 +174,6 @@ const Room = () => {
   const unassignedBulbs = bulbs.filter(
     (b: BulbStateType) => b.room_id === null
   );
-
-  // Union of member-supported scenes (T060)
-  // Collect all capability_class values from room bulbs, then filter the
-  // catalogue to scenes that support at least one of those classes.
-  const unionScenes: SceneType[] = useMemo(() => {
-    if (!allScenes.length || !roomBulbs.length) return [];
-    const classes = new Set<string>();
-    roomBulbs.forEach((b: BulbStateType) => {
-      if (b.capability_class) classes.add(b.capability_class);
-    });
-    const union = allScenes.filter((s: SceneType) =>
-      s.classes.some((c) => classes.has(c))
-    );
-    return sortScenesByName(union);
-  }, [allScenes, roomBulbs]);
 
   const handleAssign = (bulb: BulbStateType) => {
     setBulb({ ...bulb, room_id: room.id });

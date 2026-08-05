@@ -284,15 +284,19 @@ const mockSetRoom = vi.fn().mockResolvedValue({
   },
 });
 
+// Drives the queries' loading state so a test can render the loading branch
+// and then the resolved one, the way the real app does on first mount.
+const queryState = { isLoading: false };
+
 vi.mock('../src/wizlightApi', () => ({
   useGetBulbsQuery: () => ({
-    data: mixedRoomBulbs,
-    isLoading: false,
+    data: queryState.isLoading ? undefined : mixedRoomBulbs,
+    isLoading: queryState.isLoading,
     refetch: vi.fn(),
   }),
   useGetRoomsQuery: () => ({
-    data: [mixedRoom],
-    isLoading: false,
+    data: queryState.isLoading ? undefined : [mixedRoom],
+    isLoading: queryState.isLoading,
     refetch: vi.fn(),
   }),
   useSetRoomMutation: () => [mockSetRoom, { isLoading: false, isSuccess: false, isError: false }],
@@ -348,6 +352,7 @@ describe('Room', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     setupEcho();
+    queryState.isLoading = false;
   });
 
   afterEach(() => {
@@ -364,6 +369,30 @@ describe('Room', () => {
     );
 
     expect(screen.getByText('Mixed Room')).toBeInTheDocument();
+  });
+
+  it('survives the loading-to-loaded transition without changing hook order', () => {
+    // The scene-picker useMemo must be called on every render, including the
+    // one that returns "Loading..." early. Placed after that return it is
+    // skipped on the first render and appears on the second, which React
+    // rejects with "Rendered more hooks than during the previous render".
+    const renderTree = () => (
+      <MemoryRouter initialEntries={['/clarion-app/wizlights/rooms/Mixed%20Room']}>
+        <Routes>
+          <Route path="/clarion-app/wizlights/rooms/:name" element={<Room />} />
+        </Routes>
+      </MemoryRouter>
+    );
+
+    queryState.isLoading = true;
+    const { rerender } = render(renderTree());
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+
+    queryState.isLoading = false;
+    rerender(renderTree());
+
+    expect(screen.getByText('Mixed Room')).toBeInTheDocument();
+    expect(screen.getByTestId('room-scene-picker')).toBeInTheDocument();
   });
 
   // ------------------------------------------------------------------
