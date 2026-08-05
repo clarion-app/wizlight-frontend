@@ -232,7 +232,7 @@ const Bulb = ({ id }: { id: string }) => {
 
   // Label for the mode tag shown in the header.
   const modeLabel = (() => {
-    if (effectiveMode === 'rgb') return 'Colour';
+    if (effectiveMode === 'rgb') return 'Color';
     if (effectiveMode === 'warmth') return `${temperature}K`;
     if (effectiveMode === 'white_channels') return `${bulb.white_warm ?? 0}/${bulb.white_cool ?? 0}`;
     if (effectiveMode === 'scene' && bulb.scene_id) return resolveSceneName(bulb.scene_id, scenes ?? []);

@@ -8,7 +8,7 @@ interface ModeSwitchProps {
 
 const MODE_SEGMENTS: Record<string, { label: string; mode: string }[]> = {
     full_colour: [
-        { label: 'Colour', mode: 'rgb' },
+        { label: 'Color', mode: 'rgb' },
         { label: 'Warmth', mode: 'warmth' },
         { label: 'White', mode: 'white_channels' },
         { label: 'Scene', mode: 'scene' },
