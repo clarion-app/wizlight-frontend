@@ -13,6 +13,7 @@ import ScenePicker from "./ScenePicker";
 import SpeedSlider from "./SpeedSlider";
 import ModeSwitch from "./ModeSwitch";
 import WhiteChannels from "./WhiteChannels";
+import HeadBalance from "./HeadBalance";
 import { resolveSceneName } from "./scenes";
 import { WindowWS } from "@clarion-app/types";
 import {
@@ -436,6 +437,18 @@ const Bulb = ({ id }: { id: string }) => {
                   }}
                 />
               )}
+              {/* Head balance rides alongside whichever mode is active, so it
+                  is gated on the dual-head fact alone and never on the mode.
+                  The component itself renders nothing for a single-head or
+                  never-probed fixture. */}
+              <HeadBalance
+                dualHead={bulb.dual_head}
+                activeMode={effectiveMode}
+                value={bulb.head_ratio ?? 50}
+                onChange={(ratio) => {
+                  setBulb({ ...bulb, head_ratio: ratio });
+                }}
+              />
               <div className="field mt-4">
                 <div className="control">
                   <button
