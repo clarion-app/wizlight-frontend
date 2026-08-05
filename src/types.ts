@@ -11,6 +11,7 @@ export interface BulbLastSeenType {
 
 export interface BulbStateType extends LaravelModelType {
     blue: number;
+    capability_class: string | null;
     dimming: number;
     green: number;
     group: string;
@@ -18,6 +19,7 @@ export interface BulbStateType extends LaravelModelType {
     last_seen: BulbLastSeenType;
     local_node_id: string;
     mac: string;
+    min_brightness_pct: number | null;
     mode: string;
     name: string;
     red: number;
@@ -25,6 +27,10 @@ export interface BulbStateType extends LaravelModelType {
     signal: string;
     state: number;
     temperature?: number;
+    warmth_max_kelvin: number | null;
+    warmth_min_kelvin: number | null;
+    wiz_group_id: number | null;
+    wiz_room_id: number | null;
 
 }
 

@@ -209,6 +209,14 @@ const Bulb = ({ id }: { id: string }) => {
     }
   };
 
+  // Only render the controls this device actually supports. A `capability_class`
+  // of `null` (not yet probed) falls through both gates and renders like
+  // dim_only — brightness stays available unconditionally either way.
+  const showColourWheel = bulb.capability_class === "full_colour";
+  const showWarmthSlider =
+    bulb.capability_class === "full_colour" ||
+    bulb.capability_class === "tunable_white";
+
   return (
     <div className="card">
       <header className="card-header">
@@ -223,14 +231,16 @@ const Bulb = ({ id }: { id: string }) => {
             {bulb.dimming}%
           </span>
           <div className="buttons">
-            <button 
-              className={`button is-small ${colorType === "RGB" ? "is-warning" : "is-info"}`}
-              onClick={() => switchRGBxTemp()}
-              title={`Switch to ${colorType === "RGB" ? "Temperature" : "RGB"} mode`}
-            >
-              {colorType === "RGB" ? "🌡️" : "🎨"} Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
-            </button>
-            <button 
+            {showColourWheel && showWarmthSlider && (
+              <button
+                className={`button is-small ${colorType === "RGB" ? "is-warning" : "is-info"}`}
+                onClick={() => switchRGBxTemp()}
+                title={`Switch to ${colorType === "RGB" ? "Temperature" : "RGB"} mode`}
+              >
+                {colorType === "RGB" ? "🌡️" : "🎨"} Switch to {colorType === "RGB" ? "Temperature" : "RGB"}
+              </button>
+            )}
+            <button
               className="button is-small is-danger is-outlined" 
               onClick={() => deleteBulb(id)}
               title="Delete this bulb"
@@ -243,67 +253,70 @@ const Bulb = ({ id }: { id: string }) => {
 
       <div className="card-content">
         <div className="columns">
-          <div className="column is-one-third">
-            <div className="has-text-centered mb-4">
-              {colorType === "RGB" ? (
-                <div className="color-wheel-container">
-                  <Wheel
-                    color={hexToHsva(hexColor)}
-                    onChange={(color) => changeColor(color.hex)}
-                    width={150}
-                    height={150}
-                  />
-                  <div className="field mt-3">
-                    <div className="control">
-                      <input
-                        className="input is-small has-text-centered"
-                        type="text"
-                        value={hexInputText}
-                        onChange={(e) => {
-                          let value = e.target.value;
-                          if (value && !value.startsWith("#")) {
-                            value = `#${value}`;
-                          }
-                          setHexInputText(value);
-                          if (/^#[0-9a-fA-F]{6}$/.test(value)) {
-                            changeColor(value);
-                          }
-                        }}
-                        onBlur={() => {
-                          if (!/^#[0-9a-fA-F]{6}$/.test(hexInputText)) {
-                            setHexInputText(hexColor);
-                          }
-                        }}
-                        maxLength={7}
-                        style={{
-                          backgroundColor: hexColor,
-                          color: red + green + blue > 384 ? '#000' : '#fff',
-                          border: `2px solid ${red + green + blue > 384 ? '#000' : '#fff'}`
-                        }}
-                      />
+          {(showColourWheel || showWarmthSlider) && (
+            <div className="column is-one-third">
+              <div className="has-text-centered mb-4">
+                {showColourWheel && (
+                  <div className="color-wheel-container">
+                    <Wheel
+                      color={hexToHsva(hexColor)}
+                      onChange={(color) => changeColor(color.hex)}
+                      width={150}
+                      height={150}
+                    />
+                    <div className="field mt-3">
+                      <div className="control">
+                        <input
+                          className="input is-small has-text-centered"
+                          type="text"
+                          value={hexInputText}
+                          onChange={(e) => {
+                            let value = e.target.value;
+                            if (value && !value.startsWith("#")) {
+                              value = `#${value}`;
+                            }
+                            setHexInputText(value);
+                            if (/^#[0-9a-fA-F]{6}$/.test(value)) {
+                              changeColor(value);
+                            }
+                          }}
+                          onBlur={() => {
+                            if (!/^#[0-9a-fA-F]{6}$/.test(hexInputText)) {
+                              setHexInputText(hexColor);
+                            }
+                          }}
+                          maxLength={7}
+                          style={{
+                            backgroundColor: hexColor,
+                            color: red + green + blue > 384 ? '#000' : '#fff',
+                            border: `2px solid ${red + green + blue > 384 ? '#000' : '#fff'}`
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="temperature-container">
-                  <TemperatureSlide
-                    temperature={temperature!}
-                    setTemperature={setTemperature}
-                  />
-                  <div className="field mt-3">
-                    <div className="control">
-                      <input
-                        className="input is-small has-text-centered"
-                        type="text"
-                        value={`${temperature}K`}
-                        readOnly
-                      />
+                )}
+                {showWarmthSlider && (
+                  <div className="temperature-container">
+                    <TemperatureSlide
+                      temperature={temperature!}
+                      setTemperature={setTemperature}
+                    />
+                    <div className="field mt-3">
+                      <div className="control">
+                        <input
+                          className="input is-small has-text-centered"
+                          type="text"
+                          value={`${temperature}K`}
+                          readOnly
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="column">
             <div className="content">
